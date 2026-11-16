@@ -816,15 +816,42 @@ function vHome(){
   <p class="lead">Each lesson has two parts, the basics and a deeper look, with diagrams, activities and two quizzes.${CFG.TEACHER?' Your teacher, '+esc(CFG.TEACHER)+', sees the results.':''}</p></section>
   ${sb?'<section class="station" style="background:var(--accent);border:0;color:#fff"><h2 style="color:inherit">In class today?</h2><p>Join the class your teacher has started.</p><a class="btn" href="#class" style="align-self:flex-start">Join today’s class</a></section>':''}
   <div class="grid">${LESSONS.map((l,i)=>`<a class="cardlink" href="#${l.id}"><span class="tag">Lesson ${i+1}</span><h2>${l.name}</h2><p class="muted small">${l.blurb}</p><span class="small" style="color:var(--accent);font-weight:700">Read the lesson →</span></a>`).join('')}</div>
-  <section class="station"><h3>Practise on your own</h3><p class="muted">Go through a lesson with both quizzes, just like in class.</p><div class="row">${LESSONS.map(l=>`<a class="btn" href="#class-${l.id}">${l.short}</a>`).join('')}</div></section>`;
+  <section class="station"><h3>Quizzes</h3><p class="muted">10 questions each. Quiz 1 covers the basics; the final quiz covers the whole lesson.</p>
+  ${LESSONS.map(l=>`<div class="row"><b style="min-width:120px">${l.short}</b><a class="btn" href="#quiz1-${l.id}">Quiz 1</a><a class="btn" href="#quiz2-${l.id}">Final quiz</a></div>`).join('')}</section>
+  <section class="station"><h3>Practise like a class</h3><p class="muted">Part 1 → Quiz 1 → Part 2 → Final quiz, step by step.</p><div class="row">${LESSONS.map(l=>`<a class="btn" href="#class-${l.id}">${l.short}</a>`).join('')}</div></section>`;
 }
 function vLesson(id){
   const i=LESSONS.findIndex(l=>l.id===id), I=INTRO[id];
   return `<section class="hero"><p class="eyebrow">Lesson ${i+1}</p><h1>${lessonName(id)}</h1><p class="lead">${esc(I.hook)}</p></section>
   <div class="partband"><span>Part 1</span> The basics</div>${LP[id][0]()}
-  <div class="partband"><span>Quiz 1</span> In class, the 10-question basics quiz comes here.</div>
+  <section class="station" style="background:var(--accent);border:0;color:#fff"><p class="num" style="color:#fff">Quiz 1 · 10 questions</p><h2 style="color:inherit">Check the basics before Part 2</h2><a class="btn" href="#quiz1-${id}" style="align-self:flex-start">Take Quiz 1</a></section>
   <div class="partband"><span>Part 2</span> A deeper look</div>${LP[id][1]()}
-  <section class="station" style="background:var(--ink);color:var(--bg);border:0"><h2 style="color:inherit">Test yourself</h2><p style="opacity:.85">Take both quizzes, 10 questions each, in practice mode.</p><div class="row"><a class="btn primary" href="#class-${id}">Practise with quizzes</a>${LESSONS[i+1]?`<a class="btn" href="#${LESSONS[i+1].id}">Next: ${LESSONS[i+1].name}</a>`:''}</div></section>`;
+  <section class="station" style="background:var(--ink);color:var(--bg);border:0"><p class="num" style="color:#F4B183">Final quiz · 10 questions</p><h2 style="color:inherit">Test yourself on the whole lesson</h2><div class="row"><a class="btn primary" href="#quiz2-${id}">Take the final quiz</a><a class="btn" href="#quiz1-${id}">Quiz 1 again</a>${LESSONS[i+1]?`<a class="btn" href="#${LESSONS[i+1].id}">Next: ${LESSONS[i+1].name}</a>`:''}</div></section>`;
+}
+function vQuizPage(id,n){
+  const qs=n===1?QUIZ[id].q1:QUIZ[id].q2;
+  let saved={};try{saved=JSON.parse(localStorage.getItem('student')||'{}')}catch(e){}
+  return `<section class="hero"><p class="eyebrow">${esc(lessonName(id))} · ${n===1?'Quiz 1: the basics':'Final quiz'}</p><h1>${n===1?'Quiz 1':'Final quiz'}: 10 questions</h1><p class="lead">${n===1?'Questions on Part 1 of the lesson.':'Questions on the whole lesson, mostly Part 2.'} You see your score and the answers when you submit.</p></section>
+  <label class="fld station">Your name (optional)<input id="pqn" maxlength="80" value="${esc(saved.name||'')}"></label>
+  <form class="station" id="pquiz">${qs.map((q,i)=>`<fieldset class="q" style="margin:0"><legend style="font-weight:700;padding:0 4px">${i+1}. ${esc(q.q)}</legend>${q.o.map((o,j)=>`<label class="opt"><input type="radio" name="c${i}" value="${j}" required> <span>${esc(o)}</span></label>`).join('')}</fieldset>`).join('')}<p class="small muted" id="qprog">0 of ${qs.length} answered</p><button class="btn primary" type="submit" id="psub">Submit answers</button></form>
+  <div id="presult"></div>`;
+}
+function initQuizPage(id,n){
+  const qs=n===1?QUIZ[id].q1:QUIZ[id].q2, f=$('pquiz');
+  f.addEventListener('change',()=>{$('qprog').textContent=`${qs.filter((_,i)=>document.querySelector(`input[name="c${i}"]:checked`)).length} of ${qs.length} answered`});
+  f.addEventListener('submit',async e=>{
+    e.preventDefault();
+    const ans=qs.map((_,i)=>{const r=document.querySelector(`input[name="c${i}"]:checked`);return r?+r.value:-1});
+    if(ans.includes(-1)){toast('Answer every question first');return}
+    const score=ans.reduce((s,a,i)=>s+(a===qs[i].a?1:0),0), name=$('pqn').value.trim();
+    $('psub').disabled=true;
+    if(sb&&name){try{await sb.from('quiz_results').insert({phase:'practice',student_name:name,lesson:id,score,total:qs.length,answers:ans})}catch(err){}}
+    f.hidden=true; $('pqn').closest('label').hidden=true;
+    $('presult').innerHTML=`<div class="score"><p class="eyebrow" style="color:#F4B183">${esc(name||'Your score')}</p><p class="big">${score} <span style="font-size:.5em">/ ${qs.length}</span></p><p>${score>=8?'Excellent!':score>=5?'Good. Check the answers below.':'Read the answers below and revise the lesson.'}</p></div>
+    <section class="station"><h2>Answers</h2>${review(qs,ans)}</section>
+    <div class="row">${n===1?`<a class="btn primary" href="#${id}">Back to the lesson</a><a class="btn" href="#quiz2-${id}">Take the final quiz</a>`:`<a class="btn primary" href="#${id}">Back to the lesson</a><a class="btn" href="#home">All lessons</a>`}</div>`;
+    window.scrollTo(0,0);
+  });
 }
 
 /* ================= LIVE CLASS ================= */
@@ -1072,6 +1099,8 @@ async function route(){
   if(h===''&&sb){const a=await fetchActive(); if(a){location.replace('#class');return}}
   let key=h||'home';
   if(key==='results')key='reports';
+  const qm=key.match(/^quiz([12])-(l[1-4])$/);
+  if(qm){main.innerHTML=vQuizPage(qm[2],+qm[1]);initQuizPage(qm[2],+qm[1]);navCur(qm[2]);document.title=(qm[1]==='1'?'Quiz 1':'Final quiz')+' · '+lessonName(qm[2]);window.scrollTo(0,0);return}
   if(LP[key]){main.innerHTML=vLesson(key);LP[key][2]()}
   else if(key==='teacher'){main.innerHTML=vTeacher();initTeacher()}
   else if(key==='reports'){main.innerHTML=vReports();initReports()}
