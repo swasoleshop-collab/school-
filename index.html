@@ -338,7 +338,7 @@ const QUIZ={
    Qz('Which keyword creates a function?',['func','def','make','new'],1,'def name(): defines a reusable block of code.'),
    Qz('What happens with int("abc")?',['It gives 0','A ValueError','It gives "abc"','It prints abc'],1,'"abc" is not a number, so Python raises a ValueError.')]}
 };
-const COURSES=['BCA','B.Tech CSE','B.Sc Computer Science','MCA','M.Tech','Diploma','Other'];
+const COURSES=['BCA','B.Com','BBA','B.Tech CSE','B.Sc Computer Science','MCA','MBA','M.Tech','Diploma','Other'];
 
 /* ================= LESSON 1: ARTIFICIAL INTELLIGENCE ================= */
 const APPS=[['Chess program with fixed rules','ai'],['Spam filter','ml'],['YouTube suggestions','ml'],['Face unlock','dl'],['Google Lens','dl'],['ChatGPT','gen'],['AI image maker','gen']];
@@ -887,13 +887,236 @@ function initL4(){
   if($('ln')){$('ln').addEventListener('input',updLoop);updLoop()}
 }
 
+/* ================= LESSON 5: E-COMMERCE & DIGITAL MARKETING (B.Com) ================= */
+LESSONS.push({id:'l5',name:'E-commerce & Digital Marketing',short:'E-com',blurb:'How business works online, from UPI and ONDC to SEO, ads and the numbers marketers live by.'});
+const MODELS={B2C:'Business to Consumer',B2B:'Business to Business',C2C:'Consumer to Consumer',C2B:'Consumer to Business',B2G:'Business to Government',G2C:'Government to Citizen',D2C:'Direct to Consumer',C2G:'Citizen to Government'};
+const DEALS=[
+ ['You buy a phone cover from Flipkart','B2C','A business sells to you, the final consumer.'],
+ ['A Bijnor kirana store orders 50 cartons of biscuits on Udaan','B2B','One business buys from another business to resell.'],
+ ['You sell your old cycle to a stranger on OLX','C2C','Two consumers trade; the platform only connects them.'],
+ ['A student sells her photos to a company on a stock-photo site','C2B','A consumer offers something of value to a business.'],
+ ['A company sells laptops to a government office through GeM','B2G','Government e-Marketplace (GeM) is how government buys online.'],
+ ['You download your marksheet from DigiLocker','G2C','The government delivers a service to a citizen.'],
+ ['boAt sells earphones on its own website, not through a marketplace','D2C','The brand sells directly to the consumer and keeps the customer relationship.'],
+ ['You pay your house tax on the municipal website','C2G','A citizen pays or transacts with the government online.']
+];
+const ORDER=['Customer searches and browses products','Adds the product to the cart','Checks out: address and delivery option','Pays through a payment gateway (UPI, card, COD)','Seller receives and confirms the order','Seller packs; courier picks up (logistics)','Delivered to the customer','Return or refund if there is a problem'];
+function L5P1(){return `
+${SEC(H(1,'What is e-commerce?','Buying and selling over the internet')+
+DEF('E-commerce (electronic commerce)','Buying and selling of goods and services, and transferring money and data, over an electronic network, mainly the internet. It covers the whole deal: showing products, taking orders, receiving payment, delivery and after-sales service.')+
+DEF('E-business','A wider term: running all business activities electronically, including e-commerce plus internal work such as inventory, accounting, HR and supply chain. Every e-commerce firm is an e-business, but not every e-business sells online.')+
+TABLE(['','Traditional commerce','E-commerce'],[['Shop','Physical shop, limited area','Website or app, reaches all of India'],['Timing','Opening hours only','24 × 7'],['Cost','Rent, staff, display','Lower; platform fees, delivery, ads'],['Customer contact','Face to face','Online: chat, reviews, email'],['Payment','Mostly cash','UPI, cards, net banking, wallets, COD'],['Choice and comparison','A few shops','Thousands of sellers; compare prices in seconds']]))}
+${SEC(H(2,'Types of e-commerce','Classified by who buys and who sells')+
+TABLE(['Type','Meaning','Indian example'],[['<b>B2C</b>','Business sells to consumers','Amazon, Flipkart, Myntra'],['<b>B2B</b>','Business sells to business','Udaan, IndiaMART, JioMart Partner'],['<b>C2C</b>','Consumer sells to consumer','OLX, Quikr'],['<b>C2B</b>','Consumer sells to business','Freelancers on Fiverr, stock photographers'],['<b>B2G / G2B</b>','Business and government','GeM (Government e-Marketplace)'],['<b>G2C / C2G</b>','Government and citizens','DigiLocker, income-tax e-filing, paying property tax'],['<b>D2C</b>','A brand sells directly online, without a middleman','boAt, Mamaearth, Lenskart']]))}
+${TRY('1','Which e-commerce model is it?',`<p class="muted">Read each deal and tap the right model. Score: <b id="dmscore">0</b> / ${DEALS.length}</p>${DEALS.map((d,i)=>`<div class="scam" id="dm${i}"><p class="msg">${esc(d[0])}</p><div class="row">${Object.keys(MODELS).map(k=>`<button class="btn" data-dm="${i}" data-v="${k}" style="min-height:38px;padding:6px 12px">${k}</button>`).join('')}</div><p class="feedback" hidden></p></div>`).join('')}`)}
+${SEC(H(3,'Business models and revenue','How an e-commerce company is set up, and how it earns')+
+TABLE(['Model','How it works','Example'],[['<b>Inventory model</b>','The company buys stock, stores it in its own warehouse and sells it itself','A brand’s own website, an online grocery store that owns its stock'],['<b>Marketplace model</b>','The company only provides the platform; many independent sellers list and sell','Amazon.in and Flipkart for third-party sellers']])+
+NOTE('In India, foreign direct investment (FDI) is allowed up to 100% in the <b>marketplace</b> model, but not in the inventory model of B2C e-commerce. That is why large foreign-owned platforms in India work as marketplaces.')+
+TABLE(['Revenue model','Meaning','Example'],[['Commission','A % of every sale made by sellers','Marketplace takes a fee per order'],['Subscription','A fixed fee for membership or access','Amazon Prime, Netflix'],['Advertising','Sellers pay to show their products or ads','Sponsored products in search results'],['Transaction fee','A small charge per payment or booking','Convenience fee on ticket booking'],['Freemium','Basic version free, extra features paid','Canva, LinkedIn Premium']]))}
+${SEC(H(4,'How an online order works','From search to doorstep')+
+FLOW([['1. Search','browse, compare','c-teal'],['2. Cart','add product','c-teal'],['3. Checkout','address, delivery','c-accent'],['4. Payment','payment gateway','c-warn'],['5. Order confirmed','seller notified','c-accent'],['6. Logistics','pack, ship, track','c-teal'],['7. Delivery','to the door','c-good'],['8. After-sales','return, refund, review','c-good']],'fwrap')+
+DEF('Payment gateway','A secure service that connects the website to banks and UPI, checks the payment and tells the seller whether it succeeded. Examples: Razorpay, PayU, Paytm. Card data is protected under the PCI-DSS security standard.')+
+DEF('Logistics','Moving goods from seller to buyer: warehousing, packing, shipping, tracking and returns (reverse logistics). Examples: Delhivery, Ekart, India Post.'))}
+${TRY('2','Put the online order in the right order',`<p class="muted">Tap the steps in the correct order, from first to last.</p><div class="row" id="ordbtns"></div><ol id="ordlist" class="keys" style="margin-top:8px"></ol><p class="feedback info" id="ordfb">Tap the first step.</p><div class="row"><button class="btn" id="ordreset">Start again</button></div>`)}
+${SEC(H(5,'Paying online in India','UPI changed everything')+
+TABLE(['Method','How it works'],[['<b>UPI</b>','Pay from your bank account with a UPI ID or QR code, using any UPI app; confirmed with your UPI PIN'],['Debit / credit card','Card number, expiry, CVV and an OTP'],['Net banking','Log in to your bank’s website through the gateway'],['Wallet','Pre-loaded money in an app such as Paytm or Amazon Pay'],['Cash on Delivery (COD)','Pay when the product arrives; popular in small towns but costly for sellers because of returns'],['BNPL (Buy Now, Pay Later)','Short-term credit at checkout; pay in instalments later']])+
+NOTE('UPI is run by NPCI (National Payments Corporation of India). In October 2026 UPI handled a record 25.47 billion transactions worth ₹31.53 lakh crore in one month.'))}
+${SEC(H(6,'Benefits and limitations','For business, consumers and society')+
+TABLE(['','Benefits','Limitations'],[['<b>Business</b>','Nationwide reach, open 24 × 7, lower rent and staff cost, customer data for decisions','Heavy competition, platform commission, delivery and return costs, cyber fraud'],['<b>Consumers</b>','Wide choice, price comparison, reviews, home delivery, easy payment','Cannot touch or try products, delivery delays, fake products and reviews, data privacy'],['<b>Society</b>','Jobs in delivery and IT, small sellers reach the country, less travel','Pressure on local shops, packaging waste, digital divide for people without internet or skills']]))}
+${SEC(H(7,'B2C applications: products, e-brokers and travel','Syllabus: Essentials of E-commerce Part I, Unit II')+
+DEF('Products suited to B2C e-commerce','Products that customers can judge without touching them sell best online: standard branded goods (phones, books, electronics), digital products (e-books, software, music, tickets) and repeat purchases (groceries, medicines). Products people want to feel, try or taste first (clothes, furniture, sweets) need good photos, reviews and easy returns.')+
+DEF('E-broker','An online intermediary that does not own the product but brings buyers and sellers together, helps them compare options and completes the deal, earning a commission or fee. Examples: Policybazaar (insurance), Zerodha and Groww (shares), 99acres and MagicBricks (property), MakeMyTrip (travel).')+
+TABLE(['Broker-based online service','What the e-broker does','Example'],[['Insurance','Compares policies from many insurers and sells them','Policybazaar'],['Shares and mutual funds','Places buy and sell orders on the stock exchange for you','Zerodha, Groww, Upstox'],['Property','Lists houses and connects owners, buyers and tenants','99acres, MagicBricks'],['Jobs','Matches job seekers and employers','Naukri, LinkedIn'],['Travel','Compares and books flights, trains, hotels and buses','MakeMyTrip, ixigo, IRCTC']])+
+DEF('Online travel and tourism services','Booking transport, stays and experiences online: flight, train and bus tickets, hotels and homestays, holiday packages, cabs, visas and travel insurance, with instant e-tickets and online payment.')+
+TABLE(['Impact on the travel industry','Explanation'],[['Disintermediation','Travellers book directly (IRCTC, airline apps), so traditional travel agents lose business'],['Reintermediation','New online agents (MakeMyTrip, Booking.com) become the new middlemen'],['Dynamic pricing','Fares and room rates change by demand, season and time of booking'],['Reviews and transparency','Ratings and photos decide where people stay; small hotels compete with big ones'],['Benefits','24 × 7 booking, comparison, e-tickets, lower cost for providers, wider reach for small destinations']]))}
+${SEC(H(8,'Online financial services','Syllabus: Essentials of E-commerce Part I, Unit III')+
+DEF('Online banking (net banking / mobile banking)','Using a bank’s website or app to do banking without visiting a branch: check balance and statements, transfer money (NEFT, RTGS, IMPS, UPI), pay bills, open fixed deposits, apply for loans and cards, and download certificates.')+
+DEF('Online stock trading','Buying and selling shares through an online broker’s app or website. You need a <b>demat account</b> (holds shares electronically) and a <b>trading account</b> (places orders), linked to a bank account. Trades on NSE and BSE settle on T+1 (next working day). SEBI regulates brokers and markets.')+
+TABLE(['Other online financial services','Example'],[['Mutual funds and SIPs','Invest monthly through apps such as Groww, Kuvera or the fund house website'],['Online insurance','Buy and renew health, life and vehicle insurance'],['Digital lending','Instant personal loans, Buy Now Pay Later; must follow RBI digital lending rules'],['Payments and wallets','UPI apps, wallets, FASTag, QR codes'],['Invoice financing for MSMEs','TReDS platforms let small suppliers get paid early against invoices']])+
+TABLE(['Benefit','Risk'],[['24 × 7, fast, low cost, paperless','Phishing, OTP fraud, fake loan apps'],['Reaches villages and small towns','Digital illiteracy; poor internet'],['Easy comparison and transparency','Overspending and easy credit']])+
+NOTE('<b>Future of online financial services:</b> UPI growing worldwide, the Account Aggregator system for sharing financial data with consent, RBI’s digital rupee (e₹), AI-based credit scoring, and fully digital banks and insurance.'))}
+${SEC(H(9,'B2B e-commerce','Syllabus: Essentials of E-commerce Part II, Unit I')+
+DEF('B2B e-commerce','Online buying and selling between businesses: manufacturers, wholesalers, distributors and retailers. Orders are larger, prices are often negotiated, payment is on credit, and relationships are long-term.')+
+TABLE(['B2B application','Meaning'],[['E-procurement','Buying raw materials, parts and office supplies online, with approvals, purchase orders and invoices handled digitally'],['Supply chain management','Sharing stock, orders and delivery status online with suppliers and distributors'],['E-distribution','Distributors and retailers place repeat orders on the manufacturer’s portal'],['Online wholesale','Retailers buy stock from many wholesalers on one platform, e.g. Udaan']])+
+TABLE(['Key B2B technology','What it does'],[['EDI (Electronic Data Interchange)','Exchanges purchase orders, invoices and shipping notices between companies’ computers in a standard format'],['Extranet','A private network that lets selected suppliers and dealers log in to part of a company’s system'],['ERP integration','Links orders directly into each company’s accounting and inventory software (Tally, SAP)'],['E-catalogues and APIs','Up-to-date product lists and prices that other systems can read automatically'],['E-invoicing and digital payments','GST e-invoices, NEFT/RTGS, TReDS for invoice discounting']])+
+TABLE(['Type of B2B marketplace','Who controls it','Example'],[['<b>Supplier-oriented</b> (seller-side)','One big seller; many buyers order from its portal','A cement or FMCG company’s dealer ordering portal'],['<b>Buyer-oriented</b> (buyer-side)','One big buyer; suppliers bid to sell to it, often by reverse auction','A large company’s e-procurement site; government tenders on GeM'],['<b>Intermediary-oriented</b> (neutral)','A third party connects many buyers and many sellers','IndiaMART, Udaan, TradeIndia']])+
+DEF('Just-in-time (JIT) delivery','A system in which materials arrive exactly when they are needed for production or sale, not earlier, so that very little stock is held. It cuts storage cost and waste but needs reliable suppliers and real-time online ordering. Example: car makers such as Maruti Suzuki keep many suppliers close to the plant and order parts as production needs them.'))}
+${SEC(H(10,'ONDC: India’s open commerce network','Like UPI, but for buying and selling')+
+DEF('ONDC (Open Network for Digital Commerce)','A government-backed open network (under DPIIT) that lets buyers and sellers on different apps trade with each other. It is not a shopping app: it is a common set of rules, like UPI for payments. A kirana shop in Bijnor can list once and be found by customers on many buyer apps. ONDC passed 500 million cumulative transactions in 2026.'))}
+${SEC(H(11,'E-governance','Syllabus: Essentials of E-commerce Part II, Units II and III')+
+DEF('E-governance','Using information and communication technology (ICT) to deliver government services, exchange information and carry out transactions with citizens, businesses and other government departments, making governance faster, cheaper, transparent and accountable.')+
+DEF('E-government','The government’s own use of ICT to run its internal work: digital files (e-Office), online records and connected departments. E-government is the machinery inside; e-governance is the wider relationship with citizens and businesses.')+
+TABLE(['Model','Meaning','Example'],[['<b>G2C</b> Government to Citizen','Services delivered to citizens','DigiLocker, UMANG app, e-District certificates'],['<b>C2G</b> Citizen to Government','Citizens pay, file or complain online','Income-tax e-filing, property tax, CPGRAMS grievances'],['<b>G2B</b> Government to Business','Licences, rules and services for business','GST portal, MCA21 company filings, Udyam registration'],['<b>B2G</b> Business to Government','Businesses sell to or file with government','GeM purchases, e-tenders (CPPP), GST returns'],['<b>G2G</b> Government to Government','Departments share data and work together','e-Office, Aadhaar-based verification between departments']])+
+TABLE(['E-governance model (how ICT is used)','Meaning'],[['Broadcasting / wider dissemination','Putting government information online for everyone: laws, schemes, budgets'],['Critical flow','Sending important information to the people who need it, e.g. exposing corruption or disaster alerts'],['Comparative analysis','Comparing performance with best practices to improve, e.g. ranking schools or districts'],['E-advocacy / mobilisation','Using the internet to build public opinion and participation, e.g. MyGov consultations'],['Interactive service','Two-way services: apply, pay, track and get the certificate online']])+
+TABLE(['EDI and internet applications in governance','Example'],[['Customs EDI','ICEGATE: importers and exporters file shipping bills and duties electronically'],['GST e-invoicing','Invoices registered on the Invoice Registration Portal and shared with the tax system automatically'],['Internet applications','Online applications for passports, driving licences, scholarships, land records, e-Courts, e-Hospital']])+
+TABLE(['Private sector interface in e-governance','Example'],[['Public-private partnership (PPP)','Passport Seva: the government runs the service; TCS built and operates the technology'],['IT companies build systems','GST Network technology built by Infosys'],['Local entrepreneurs deliver services','Common Service Centres (CSCs) in villages run by local operators'],['Private apps on public rails','UPI apps, ONDC buyer and seller apps, DigiLocker-linked apps']]))}
+${SEC(H(12,'Consumer protection online','The rules every e-commerce company must follow')+
+TABLE(['Rule','What it requires'],[['Consumer Protection (E-Commerce) Rules, 2020','Show seller details, total price with all charges, return and refund policy, country of origin of goods; appoint a grievance officer who acknowledges complaints within 48 hours'],['Dark Patterns Guidelines, 2023','Bans 13 deceptive design tricks, such as false urgency (“only 1 left!” when untrue), basket sneaking, drip pricing and subscription traps'],['Amendment Rules, 2026 (from 1 Jan 2027)','Make the dark-pattern guidelines compulsory for all e-commerce entities, with a yearly self-audit and a displayed certificate']])+
+NOTE('Consumers can complain to the National Consumer Helpline at <b>1915</b> or consumerhelpline.gov.in.'))}
+${KEYBOX(['E-commerce = buying and selling over the internet; e-business = all business processes done electronically.','Types: B2C, B2B, C2C, C2B, B2G, G2C, D2C; inventory vs marketplace model; five revenue models.','B2C: online shopping procedure, products suited to B2C, e-brokers, online travel (disintermediation and reintermediation).','Online banking, online stock trading (demat + trading account), other online financial services and their future.','B2B: EDI, extranet, ERP; supplier-, buyer- and intermediary-oriented marketplaces; JIT delivery.','E-governance: G2C, C2G, G2B, B2G, G2G; five e-governance models; EDI in governance; PPP and CSCs.'])}`}
+
+function L5P2(){return `
+${SEC(H(13,'What is digital marketing?','Promoting products where customers spend their time: online')+
+DEF('Digital marketing','Promoting products, services or brands to customers through digital channels: search engines, websites, social media, email, mobile apps and online ads. Unlike a newspaper ad, it can target exactly the right people and measure every result.')+
+TABLE(['','Traditional marketing','Digital marketing'],[['Media','Newspaper, TV, radio, hoardings, pamphlets','Google, Instagram, YouTube, WhatsApp, email'],['Targeting','Everyone who sees it','By age, location, interest, behaviour'],['Cost','High, fixed','Any budget; pay per click or per view'],['Measurement','Difficult','Exact: views, clicks, sales'],['Interaction','One way','Two way: comments, messages, shares']])+
+TABLE(['Media type','Meaning','Example'],[['<b>Owned</b>','Channels the business controls','Website, Instagram page, email list'],['<b>Paid</b>','Space the business pays for','Google Ads, Instagram ads, influencer posts'],['<b>Earned</b>','Free publicity from others','Reviews, shares, news coverage, word of mouth']]))}
+${SEC(H(14,'Digital marketing channels','The main tools, and what each is best for')+
+TABLE(['Channel','Meaning','Best for'],[['<b>SEO</b> (Search Engine Optimisation)','Improving a website so it ranks higher in free (organic) Google results','Long-term, free traffic'],['<b>SEM / PPC</b>','Paid ads on search engines; you pay per click (Google Ads)','Quick, targeted traffic'],['<b>Social media marketing</b>','Posts, reels and ads on Instagram, Facebook, YouTube, LinkedIn','Awareness and engagement'],['<b>Content marketing</b>','Useful blogs, videos and guides that attract customers','Trust and SEO'],['<b>Email marketing</b>','Messages and offers sent to people who agreed to receive them','Repeat customers'],['<b>WhatsApp / SMS marketing</b>','Catalogues, offers and order updates on WhatsApp Business','Local businesses in India'],['<b>Influencer marketing</b>','Paying creators to recommend a product','Reaching a creator’s followers'],['<b>Affiliate marketing</b>','Partners earn a commission on each sale they bring','Pay only for results']]))}
+${SEC(H(15,'SEO: getting found on Google','Organic search results')+
+DEF('SEO (Search Engine Optimisation)','Improving a website’s content, structure and reputation so that it appears higher in unpaid search results for the words customers type, called <b>keywords</b>.')+
+TABLE(['Type','What you do'],[['On-page SEO','Use the right keywords in the page title, headings and content; write a clear meta description'],['Off-page SEO','Earn links from other trusted websites, reviews and mentions'],['Technical SEO','Fast loading, mobile-friendly, secure (HTTPS), easy for Google to read'],['Local SEO','A Google Business Profile with address, photos and reviews, so you appear on Google Maps for “near me” searches']])+
+DEF('SERP (Search Engine Results Page)','The page Google shows after a search. Paid ads (marked “Sponsored”) appear at the top; organic results come from SEO.'))}
+${TRY('3','Write a Google search listing',`<p class="muted">You run <b>Gupta Sweets, Bijnor</b>. Write the title and description Google will show. Good listings use the keyword people search (e.g. “sweets in Bijnor”), stay within the limits, and give a reason to click.</p>
+<label class="fld"><span>Page title (<b id="sr-tc">0</b>/60)</span><input id="sr-t" maxlength="90" value="Gupta Sweets Bijnor | Fresh Mithai, Order on WhatsApp" spellcheck="false"></label>
+<label class="fld"><span>Meta description (<b id="sr-dc">0</b>/160)</span><input id="sr-d" maxlength="220" value="Fresh kaju katli, rasgulla and Diwali gift boxes made daily in Bijnor. Home delivery and same-day orders on WhatsApp." spellcheck="false"></label>
+<div class="station" style="background:#fff;gap:2px;padding:14px 16px"><span class="small" style="color:#4d5156">guptasweets.in › bijnor</span><span id="sr-pt" style="color:#1a0dab;font-size:19px;line-height:1.3"></span><span id="sr-pd" class="small" style="color:#4d5156"></span></div>
+<ul class="keys" id="sr-chk"></ul>`)}
+${SEC(H(16,'Creating and optimising a website','Syllabus: Digital Marketing, Unit II')+
+FLOW([['1. Domain name','e.g. guptasweets.in','c-teal'],['2. Hosting','server space for the site','c-teal'],['3. Build','website builder or editor','c-accent'],['4. Content','pages, photos, prices, contact','c-accent'],['5. Optimise','speed, mobile, SEO','c-warn'],['6. Launch and track','Google Business Profile, analytics','c-good']],'fwrap')+
+TABLE(['Tool to build a website','Best for'],[['WordPress','Blogs and business sites; thousands of themes and plugins'],['Shopify, Wix, Dukaan','Online shops with cart and payments built in'],['Google Sites','Free, very simple information sites'],['HTML editors (e.g. VS Code; MS Expression Web, named in the syllabus, is an older, discontinued Microsoft editor)','Writing pages by hand with HTML and CSS']])+
+TABLE(['Good web design','Why it matters'],[['Mobile-first','Most Indian users browse on phones'],['Fast loading (under ~3 seconds)','Slow sites lose visitors and rank lower'],['Clear call to action','“Order on WhatsApp”, “Call now”, “Add to cart”'],['Trust signals','Address, phone, reviews, HTTPS padlock, return policy'],['Simple navigation','Customers find products in two or three taps']])+
+DEF('Website optimisation','Improving a site so it loads fast, works on every device, ranks well and turns more visitors into customers: compressing images, mobile-friendly layout, HTTPS, clear headings, and testing which page design converts better (A/B testing).')+
+DEF('SEO content writing','Writing web content that answers what customers search for and uses those keywords naturally: a keyword-rich title and headings, short readable paragraphs, useful details (prices, ingredients, delivery area), images with descriptive alt text, and links to related pages. Write for people first, search engines second.'))}
+${SEC(H(17,'Google Ads (search engine advertising)','Syllabus: Digital Marketing, Unit II: Google AdWords accounts and types')+
+NOTE('Google AdWords was renamed <b>Google Ads</b> in 2018. Ads are sold by auction: advertisers choose keywords and a bid, and Google ranks ads by bid and ad quality.')+
+FLOW([['Account','one business, billing','c-teal'],['Campaign','goal, budget, location','c-accent'],['Ad group','one theme, e.g. “Diwali sweets”','c-warn'],['Keywords and ads','what people search; what they see','c-good']],'fwrap')+
+TABLE(['Campaign type','Where ads appear','Use'],[['Search','Google search results, as text ads','People already looking: “sweets shop Bijnor”'],['Display','Banners on millions of websites and apps','Awareness and reminders'],['Video','YouTube','Brand stories, product demos'],['Shopping','Product photos with price in Google search','Online shops'],['Performance Max','All Google channels, automated by Google AI','One campaign for many channels'],['App','Search, Play Store, YouTube','App installs']])+
+TABLE(['Keyword match type','Shows ads for'],[['Broad match','Related searches, widest reach'],['Phrase match','Searches that include the meaning of the phrase'],['Exact match','Searches with the same meaning as the keyword only']]))}
+${SEC(H(18,'The marketing funnel','How a stranger becomes a loyal customer')+
+FLOW([['Awareness','sees the brand: reel, ad, search','c-teal'],['Interest','visits the page, follows','c-teal'],['Consideration','compares, reads reviews','c-accent'],['Conversion','buys or enquires','c-warn'],['Loyalty','buys again, recommends','c-good']],'fwrap')+
+NOTE('The classic <b>AIDA</b> model says the same thing: Attention → Interest → Desire → Action. Each stage needs different content, and the number of people falls at every stage.'))}
+${SEC(H(19,'Measuring results: the key numbers','Digital marketing is measured, not guessed')+
+TABLE(['Metric','Formula','Meaning'],[['Impressions','–','How many times the ad was shown'],['Reach','–','How many different people saw it'],['Clicks','–','How many times people clicked'],['<b>CTR</b> (Click-through rate)','Clicks ÷ Impressions × 100','How attractive the ad is'],['<b>CPC</b> (Cost per click)','Cost ÷ Clicks','What each visitor costs'],['<b>CPM</b> (Cost per mille)','Cost ÷ Impressions × 1,000','Cost of 1,000 views'],['<b>Conversion rate</b>','Orders ÷ Clicks × 100','How many visitors buy'],['<b>CPA</b> (Cost per acquisition)','Cost ÷ Orders','Ad cost of one sale'],['<b>ROAS</b> (Return on ad spend)','Revenue ÷ Ad cost','₹ earned for every ₹1 spent on ads']]))}
+${TRY('4','Ad campaign calculator',`<p class="muted">Gupta Sweets runs a Google Ads campaign before Diwali. Move the sliders and watch the results.</p>
+<div class="two">
+<label class="fld"><span>Ad budget: ₹<b id="ac-bv"></b></span><input type="range" id="ac-b" min="1000" max="20000" step="500" value="5000"></label>
+<label class="fld"><span>Cost per click (CPC): ₹<b id="ac-cv"></b></span><input type="range" id="ac-c" min="2" max="30" step="1" value="5"></label>
+<label class="fld"><span>Click-through rate (CTR): <b id="ac-tv"></b>%</span><input type="range" id="ac-t" min="0.5" max="10" step="0.5" value="2"></label>
+<label class="fld"><span>Conversion rate: <b id="ac-rv"></b>%</span><input type="range" id="ac-r" min="0.5" max="15" step="0.5" value="4"></label>
+<label class="fld"><span>Average order value: ₹<b id="ac-ov"></b></span><input type="range" id="ac-o" min="200" max="3000" step="100" value="800"></label>
+</div>
+<div class="tablebox"><table id="ac-out"></table></div><p class="feedback info" id="ac-fb"></p>`)}
+${SEC(H(20,'Social media marketing: plan, Facebook ads, Instagram','Syllabus: Digital Marketing, Unit III')+
+FLOW([['1. Goal','followers, enquiries, orders','c-teal'],['2. Audience','age, place, interests','c-teal'],['3. Platforms','Instagram, Facebook, YouTube, WhatsApp','c-accent'],['4. Content calendar','what to post, when','c-accent'],['5. Engage','reply to comments and DMs','c-warn'],['6. Measure','reach, engagement, leads','c-good']],'fwrap')+
+DEF('Facebook and Instagram ads (Meta Ads Manager)','Ads are created in Meta Ads Manager in three levels: <b>Campaign</b> (choose the objective: Awareness, Traffic, Engagement, Leads, App promotion or Sales) → <b>Ad set</b> (audience, location, budget, schedule, placements) → <b>Ad</b> (image or video, text, call-to-action button). One ad can run on both Facebook and Instagram.')+
+TABLE(['Ad visibility depends on','Meaning'],[['Targeting','The right age, place and interests, or a lookalike of existing customers'],['Budget and bid','How much you are willing to spend'],['Ad quality and relevance','Good creative and engagement make ads cheaper and shown more'],['Placement','Feed, Stories, Reels, Messenger, Audience Network']])+
+TABLE(['Instagram for business','What to do'],[['Professional account','Switch to a Business or Creator account to get insights, contact buttons, ads and a shop'],['Profile optimisation','Clear name with keyword (“Gupta Sweets | Bijnor”), logo as profile photo, bio with offer, link, Story Highlights (menu, reviews, delivery)'],['Integration','Link the Facebook Page, WhatsApp Business number and Instagram Shop'],['Posting','Posts, Reels (best for reach), Stories (daily updates), Lives; use relevant hashtags and post regularly'],['Insights','Track reach, profile visits, follows, saves and messages']]))}
+${SEC(H(21,'YouTube for business','Syllabus: Digital Marketing, Unit IV')+
+DEF('YouTube business channel','A channel run under a brand account, so several team members can manage it. Business content: product demos, how-to videos, customer stories, Shorts, behind the scenes.')+
+TABLE(['YouTube ad format','How it works'],[['Skippable in-stream','Plays before or during a video; viewer can skip after 5 seconds'],['Non-skippable in-stream','Short ad (about 15 seconds) that must be watched'],['Bumper ad','6-second non-skippable ad for quick reminders'],['In-feed ad','Appears in search results and recommendations; pays when clicked to watch'],['Shorts ads','Vertical ads between Shorts']])+
+TABLE(['YouTube Analytics metric','Meaning'],[['Views and watch time','How much people watched: watch time matters most to YouTube'],['Average view duration','How long people stay; shows if the video is interesting'],['Impressions click-through rate','How often people click the thumbnail when it is shown'],['Subscribers and traffic sources','Growth, and where viewers came from (search, suggested, external)']]))}
+${SEC(H(22,'Email marketing','Syllabus: Digital Marketing, Unit IV')+
+FLOW([['1. Build a list','with consent: sign-up form, bill counter','c-teal'],['2. Segment','new, regular, festive buyers','c-teal'],['3. Create','subject line, offer, button','c-accent'],['4. Send and test','right time; A/B test subject lines','c-warn'],['5. Analyse','opens, clicks, conversions','c-good']],'fwrap')+
+TABLE(['Email metric','Formula'],[['Open rate','Opens ÷ Emails delivered × 100'],['Click-through rate','Clicks ÷ Emails delivered × 100'],['Conversion rate','Orders ÷ Emails delivered × 100'],['Bounce rate','Emails not delivered ÷ Emails sent × 100'],['Unsubscribe rate','Unsubscribes ÷ Emails delivered × 100']])+
+NOTE('Tools: Mailchimp, Zoho Campaigns, Brevo. Always include an unsubscribe link and send only to people who agreed (DPDP Act, 2023).'))}
+${SEC(H(23,'The digital marketing plan and content management','Syllabus: Digital Marketing, Unit I')+
+FLOW([['1. Goal','e.g. 200 Diwali orders','c-teal'],['2. Target group analysis','who, where, age, interests, needs','c-teal'],['3. SWOT analysis','strengths, weaknesses, opportunities, threats','c-accent'],['4. Channels and content','Google, Instagram, WhatsApp','c-accent'],['5. Budget','plan, estimate, control cost','c-warn'],['6. Measure','analytics: CTR, conversions, ROAS','c-good']],'fwrap')+
+TABLE(['SWOT for Gupta Sweets','Example'],[['Strengths (internal)','40-year reputation, fresh daily, loyal local customers'],['Weaknesses (internal)','No website, no online payment on the counter, small staff'],['Opportunities (external)','Diwali gifting, people from Bijnor living in Delhi, ONDC'],['Threats (external)','Big sweet brands online, new shops, rising sugar and milk prices']])+
+DEF('Content management','Planning, creating, publishing and updating all content (posts, photos, videos, web pages) in an organised way, using a <b>content calendar</b> (what to post on which day) and often a <b>CMS</b> (content management system) such as WordPress, so the brand stays regular and consistent.'))}
+${SEC(H(24,'Budgeting a digital campaign','Syllabus: Digital Marketing, Unit IV')+
+TABLE(['Step','Meaning','Gupta Sweets example'],[['1. Resource planning','Deciding what people, tools and time the campaign needs','Owner + one staff for photos; Canva; Google and Meta ad accounts'],['2. Cost estimating','Estimating the cost of each activity','Google Ads ₹5,000; Instagram ads ₹3,000; photos ₹1,000; offers ₹2,000'],['3. Cost budgeting','Adding estimates into one approved budget, spread over time','₹11,000 over three weeks before Diwali'],['4. Cost control','Tracking actual spend against the budget and moving money to what works','Stop the weak ad; shift money to the ad with the best ROAS']]))}
+${SEC(H(25,'CRM: Customer Relationship Management','Syllabus: Digital Marketing, Unit III')+
+DEF('CRM','A strategy, supported by software, for managing every interaction with customers: storing their details, purchases and conversations, so the business can serve them better, sell again and keep them loyal. Keeping a customer usually costs much less than finding a new one.')+
+TABLE(['Type of CRM','Purpose'],[['Operational','Automates daily work: sales follow-ups, marketing messages, service tickets'],['Analytical','Studies customer data: who buys what, when, and who may stop buying'],['Collaborative','Shares customer information across sales, service and marketing teams']])+
+TABLE(['IDIC model (a common CRM model)','Meaning'],[['Identify','Know each customer: name, number, birthday, purchase history'],['Differentiate','Group customers by value and needs: wholesale, regular, festive'],['Interact','Talk to them through their preferred channel: WhatsApp, call, email'],['Customise','Tailor offers: sugar-free sweets for diabetic customers, bulk rates for shops']])+
+NOTE('<b>CRM platforms:</b> Zoho CRM (Indian), Salesforce, HubSpot (free plan), and for small shops simply WhatsApp Business labels and a spreadsheet. <b>CRM strategy:</b> set a goal, collect data with consent, segment customers, personalise communication, and measure repeat purchases.'))}
+${SEC(H(26,'Web analytics','Syllabus: Digital Marketing, Unit III: levels of web analytics')+
+DEF('Web analytics','Collecting, measuring and studying data about website visitors to understand their behaviour and improve the site and marketing. Google Analytics (GA4) is the most common free tool.')+
+TABLE(['Level','Question it answers','Example measures'],[['1. Traffic (reach)','How many people came, and from where?','Users, sessions, page views, traffic sources'],['2. Behaviour (engagement)','What did they do on the site?','Engagement time, pages per visit, bounce or exit pages'],['3. Conversion','Did they do what we wanted?','Orders, enquiries, sign-ups, conversion rate'],['4. Business outcome','Was it worth the money?','Revenue, ROAS, customer lifetime value']]))}
+${SEC(H(27,'Ethics, law and careers','Doing digital marketing the right way')+
+KEY(['<b>Influencers must disclose</b> paid posts clearly (#ad, #sponsored, “paid partnership”), as required by the Department of Consumer Affairs’ endorsement guidelines (2023).','<b>No misleading ads or fake reviews</b>: the Consumer Protection Act, 2019 and the Central Consumer Protection Authority (CCPA) act against them.','<b>Consent for messages</b>: send email and WhatsApp offers only to people who agreed; personal data is protected by the DPDP Act, 2023.'])+
+TABLE(['Career','What they do'],[['SEO executive','Improves website rankings and content'],['Social media manager','Plans posts and reels, grows followers, handles comments'],['Performance marketer','Runs Google and Meta ad campaigns and manages ROAS'],['E-commerce manager','Runs listings, pricing and promotions on Amazon, Flipkart and ONDC'],['Content writer / creator','Writes blogs, scripts and captions']])+
+NOTE('Free learning: Google Skillshop (Google Ads and Analytics certificates) and Meta Blueprint.'))}
+${SEC(H(28,'Syllabus coverage map','Where each unit of the syllabus is taught in this lesson')+
+TABLE(['Syllabus unit','Topics','Section'],[['E-commerce Part I, Unit I','Internet and commerce, traditional vs online, benefits, limitations','1, 6'],['E-commerce Part I, Unit II','B2C applications, online shopping procedure, B2C products, e-brokers, broker-based services, travel and tourism','2, 4, 5, 7'],['E-commerce Part I, Unit III','Travel industry impact, online stock trading, online banking, online financial services and future','7, 8'],['E-commerce Part II, Unit I','B2B applications and technologies, supplier-, buyer- and intermediary-oriented marketplaces, JIT','9'],['E-commerce Part II, Unit II','EDI in governance, e-government, internet applications in governance','11'],['E-commerce Part II, Unit III','G2B, B2G, C2G, e-governance models, private sector interface','2, 11'],['Digital Marketing, Unit I','Digital vs traditional, channels, plan, content management, SWOT, target group','13, 14, 23'],['Digital Marketing, Unit II','Web design, website optimisation, creating websites, SEO and SEO content writing, Google Ads accounts and types','15, 16, 17'],['Digital Marketing, Unit III','CRM, web analytics levels, social media plan, Facebook ads, Instagram business','20, 25, 26'],['Digital Marketing, Unit IV','YouTube business and analytics, email marketing, budgeting','21, 22, 24'],['Beyond the syllabus (current and exam-useful)','Business and revenue models, UPI, ONDC, consumer protection, funnel, ad metrics, ethics, careers','3, 5, 10, 12, 18, 19, 27']]))}
+${KEYBOX(['Digital marketing = promotion through digital channels; owned, paid and earned media.','Website: domain → hosting → build → content → optimise; SEO and SEO content writing.','Google Ads: account → campaign → ad group → keywords and ads; Search, Display, Video, Shopping, Performance Max, App.','Meta Ads: campaign (objective) → ad set (audience, budget) → ad; Instagram professional account and profile; YouTube ads and analytics.','Email metrics: open rate, CTR, bounce, unsubscribe; budgeting: resource planning → cost estimating → cost budgeting → cost control.','CRM (operational, analytical, collaborative; IDIC); four levels of web analytics; CTR, CPC, CPM, CPA, ROAS.'])}`}
+
+function initL5(){
+  const done={};
+  document.querySelectorAll('[data-dm]').forEach(b=>b.addEventListener('click',()=>{
+    const i=+b.dataset.dm,d=DEALS[i],ok=b.dataset.v===d[1];
+    if(!(i in done)){done[i]=ok;$('dmscore').textContent=Object.values(done).filter(Boolean).length}
+    const fb=$('dm'+i).querySelector('.feedback');fb.hidden=false;fb.className='feedback '+(ok?'good':'bad');
+    fb.textContent=(ok?'Correct. ':'Not quite. The answer is ')+d[1]+' ('+MODELS[d[1]]+'): '+d[2];
+    $('dm'+i).querySelectorAll('button').forEach(x=>x.disabled=true);
+  }));
+  if($('ordbtns')){
+    let picked=[];
+    const shuffled=[3,0,6,1,7,4,2,5];
+    const draw=()=>{
+      $('ordbtns').innerHTML=shuffled.filter(i=>!picked.includes(i)).map(i=>`<button class="btn" data-ord="${i}" style="min-height:38px;padding:6px 12px;text-align:left">${esc(ORDER[i])}</button>`).join('');
+      $('ordlist').innerHTML=picked.map(i=>`<li>${esc(ORDER[i])}</li>`).join('');
+      document.querySelectorAll('[data-ord]').forEach(b=>b.addEventListener('click',()=>{
+        const i=+b.dataset.ord, fb=$('ordfb');
+        if(i===picked.length){picked.push(i);fb.className='feedback good';fb.textContent=picked.length===ORDER.length?'Perfect! That is the full journey of an online order.':'Correct. Next step?'}
+        else{fb.className='feedback bad';fb.textContent='Not yet. Think: what must happen before “'+ORDER[i]+'”?'}
+        draw();
+      }));
+    };
+    on('ordreset','click',()=>{picked=[];$('ordfb').className='feedback info';$('ordfb').textContent='Tap the first step.';draw()});
+    draw();
+  }
+  if($('sr-t')){
+    const sr=()=>{const t=$('sr-t').value,d=$('sr-d').value;
+      $('sr-tc').textContent=t.length;$('sr-dc').textContent=d.length;
+      $('sr-pt').textContent=t.length>60?t.slice(0,57)+'…':t||'(no title)';
+      $('sr-pd').textContent=d.length>160?d.slice(0,157)+'…':d||'(no description)';
+      const kw=/bijnor/i.test(t)&&/sweet|mithai/i.test(t+' '+d);
+      const cta=/order|call|visit|book|buy|delivery|whatsapp/i.test(d);
+      const checks=[[t.length>=30&&t.length<=60,'Title is 30–60 characters, so Google shows it in full'],[d.length>=70&&d.length<=160,'Description is 70–160 characters'],[kw,'Uses the keywords people search: “sweets / mithai” and “Bijnor”'],[cta,'Gives a reason to act (order, delivery, call, visit)']];
+      $('sr-chk').innerHTML=checks.map(([ok,txt])=>`<li style="color:${ok?'var(--good)':'var(--bad)'}">${ok?'✓':'✗'} ${txt}</li>`).join('');};
+    on('sr-t','input',sr);on('sr-d','input',sr);sr();
+  }
+  if($('ac-b')){
+    const inr=n=>'₹'+Math.round(n).toLocaleString('en-IN');
+    const ac=()=>{const B=+$('ac-b').value,C=+$('ac-c').value,T=+$('ac-t').value,R=+$('ac-r').value,O=+$('ac-o').value;
+      $('ac-bv').textContent=B.toLocaleString('en-IN');$('ac-cv').textContent=C;$('ac-tv').textContent=T;$('ac-rv').textContent=R;$('ac-ov').textContent=O;
+      const clicks=B/C, imps=clicks/(T/100), orders=clicks*R/100, rev=orders*O, roas=rev/B, cpa=orders?B/orders:0, cpm=B/imps*1000;
+      $('ac-out').innerHTML=`<tr><th>Result</th><th>Working</th><th>Value</th></tr>`+[
+        ['Clicks','Budget ÷ CPC',Math.round(clicks).toLocaleString('en-IN')],
+        ['Impressions','Clicks ÷ CTR',Math.round(imps).toLocaleString('en-IN')],
+        ['CPM','Budget ÷ impressions × 1,000',inr(cpm)],
+        ['Orders','Clicks × conversion rate',Math.round(orders).toLocaleString('en-IN')],
+        ['Revenue','Orders × order value',inr(rev)],
+        ['CPA','Budget ÷ orders',inr(cpa)],
+        ['ROAS','Revenue ÷ budget',roas.toFixed(1)+'×']].map(r=>`<tr>${r.map(c=>`<td class="tw">${c}</td>`).join('')}</tr>`).join('');
+      const fb=$('ac-fb');fb.className='feedback '+(roas>=4?'good':roas>=2?'info':'bad');
+      fb.textContent=roas>=4?`Excellent: every ₹1 of ads brings back ₹${roas.toFixed(1)} in sales.`:roas>=2?`Profitable if the profit margin is good: ₹${roas.toFixed(1)} of sales per ₹1 of ads.`:`Losing money: only ₹${roas.toFixed(1)} of sales per ₹1 of ads. Lower the cost per click (better-quality ads usually cost less per click) or improve the website so more visitors buy (higher conversion rate).`;};
+    ['ac-b','ac-c','ac-t','ac-r','ac-o'].forEach(id=>on(id,'input',ac));ac();
+  }
+}
+QUIZ.l5={title:'E-commerce & Digital Marketing',
+ q1:[
+  Qz('E-commerce means…',['Only selling on Amazon','Buying and selling goods and services over an electronic network such as the internet','Sending emails','Using a computer in a shop'],1,'It covers the whole deal online: products, orders, payment, delivery and service.'),
+  Qz('A kirana store buys stock from a wholesaler on Udaan. This is…',['B2C','C2C','B2B','G2C'],2,'One business buys from another business: B2B.'),
+  Qz('Downloading your marksheet from DigiLocker is an example of…',['G2C','B2B','C2B','B2C'],0,'Government to Citizen service.'),
+  Qz('In the marketplace model, the e-commerce company…',['Owns all the stock it sells','Provides a platform where many independent sellers sell','Only sells its own brand','Sells only to government'],1,'Amazon and Flipkart work mainly as marketplaces for third-party sellers.'),
+  Qz('A payment gateway…',['Delivers the product','Securely connects the website to banks and UPI and confirms the payment','Designs the website','Writes product reviews'],1,'Examples: Razorpay, PayU, Paytm.'),
+  Qz('An e-broker such as Policybazaar…',['Makes the insurance policies itself','Brings buyers and sellers together online and earns a commission, without owning the product','Is a government department','Delivers parcels'],1,'E-brokers are online intermediaries: insurance, shares, property, travel.'),
+  Qz('To buy and sell shares online you need…',['Only a UPI ID','A demat account and a trading account linked to a bank account','A GST number','A credit card'],1,'Demat holds the shares; the trading account places the orders.'),
+  Qz('A large company asks suppliers to bid on its own portal to supply parts. This is a…',['Supplier-oriented marketplace','Buyer-oriented marketplace','C2C marketplace','Intermediary-oriented marketplace'],1,'One big buyer controls the marketplace and suppliers compete, often by reverse auction.'),
+  Qz('Just-in-time (JIT) delivery means…',['Delivering only at night','Materials arrive exactly when needed, so very little stock is held','Keeping a year of stock','Delivering only to government'],1,'It cuts storage cost but needs reliable suppliers and online ordering.'),
+  Qz('Passport Seva, where the government runs the service and TCS runs the technology, is an example of…',['C2C e-commerce','The private sector interface (public-private partnership) in e-governance','A dark pattern','Affiliate marketing'],1,'PPP brings private technology into public services.')],
+ q2:[
+  Qz('SEO helps a website…',['Rank higher in free (organic) search results','Pay less tax','Show ads on TV','Send SMS'],0,'Search Engine Optimisation brings unpaid traffic.'),
+  Qz('Paying Google for each click on your ad is called…',['SEO','PPC / SEM (Google Ads)','Affiliate marketing','EDI'],1,'Pay-per-click search engine marketing.'),
+  Qz('A shop’s own Instagram page is which type of media?',['Paid','Earned','Owned','Rented'],2,'Owned media is controlled by the business itself.'),
+  Qz('An ad is shown 10,000 times and gets 200 clicks. CTR is…',['0.2%','2%','20%','200%'],1,'CTR = 200 ÷ 10,000 × 100 = 2%.'),
+  Qz('Ads cost ₹5,000 and bring ₹20,000 in sales. ROAS is…',['0.25×','4×','15×','25×'],1,'ROAS = Revenue ÷ Ad cost = 20,000 ÷ 5,000 = 4×.'),
+  Qz('In Meta Ads Manager, the audience, budget and placements are chosen at the…',['Campaign level','Ad set level','Ad level','Page level'],1,'Campaign = objective; ad set = audience, budget, schedule, placements; ad = creative.'),
+  Qz('A 6-second non-skippable YouTube ad is called a…',['Bumper ad','Display ad','Shopping ad','Search ad'],0,'Bumper ads are short reminders.'),
+  Qz('1,000 emails are delivered and 250 are opened. The open rate is…',['2.5%','25%','250%','4%'],1,'Open rate = 250 ÷ 1,000 × 100 = 25%.'),
+  Qz('A system that stores customer details and purchase history to follow up and retain customers is…',['CRM','SERP','CPM','UPI'],0,'Customer Relationship Management, e.g. Zoho CRM.'),
+  Qz('Tracking actual ad spending against the budget and moving money to the best ads is called…',['Resource planning','Cost estimating','Cost budgeting','Cost control'],3,'The fourth step of budgeting.')]};
+
 /* ================= PAGES ================= */
-const LP={l1:[L1P1,L1P2,initL1],l2:[L2P1,L2P2,initL2],l3:[L3P1,L3P2,initL3],l4:[L4P1,L4P2,initL4]};
+const LP={l1:[L1P1,L1P2,initL1],l2:[L2P1,L2P2,initL2],l3:[L3P1,L3P2,initL3],l4:[L4P1,L4P2,initL4],l5:[L5P1,L5P2,initL5]};
 const lessonName=id=>(LESSONS.find(l=>l.id===id)||{}).name||id;
 const INTRO={
  l1:{hook:'Have you used ChatGPT, Google Lens or an Instagram filter this week? Is Google Maps AI?',goals:['Define AI and explain how it works: Input → Process → Output','Tell AI, Machine Learning, Deep Learning and Generative AI apart','Explain how an AI app is built: front end, API, back end, model, database, cloud']},
  l2:{hook:'If you were building the Vivek University ERP login, how would you store 5,000 student passwords so that a database leak does not expose them?',goals:['Revise the key terms, CIA triad, malware and social engineering','Explain symmetric and asymmetric encryption, hashing, salting, digital signatures and TLS','Recognise OWASP Top 10 risks, demonstrate SQL injection and its fix, and know India’s cyber laws']},
  l3:{hook:'A chemist shop has 3,000 medicines. How does it know which ones expire next month?',goals:['Explain data, information, databases and DBMS','Describe tables, primary keys and foreign keys','Write SQL queries and understand how apps use databases']},
+ l5:{hook:'Diwali is coming. How would you help a sweet shop in Bijnor sell online, and how would customers even find it?',goals:['Explain e-commerce, its types, B2C applications, online financial services, B2B marketplaces and e-governance','Build and promote a business online: website, SEO, Google Ads, Facebook, Instagram, YouTube and email','Plan, budget and measure a campaign with CRM, web analytics and metrics such as CTR, ROAS and open rate']},
  l4:{hook:'Most AI tools are built with Python. Today you learn how a program thinks.',goals:['Explain programs, algorithms, flowcharts and Python','Use variables, data types, input and output','Use operators, if/elif/else, loops, lists and functions']}
 };
 function vHome(){
@@ -1209,13 +1432,19 @@ PRINTACT={
  'Multiplication table with a for loop':()=>BOARD('Write the loop. Ask: what prints when n is 7? What changes with range(1, 21)?')+`<p class="out">${Array.from({length:10},(_,i)=>`7 x ${i+1} = ${7*(i+1)}`).join('\n')}</p><p>range(1, 21) prints up to 7 x 20: the end number is not included.</p>`,
  'Real life: chemist bill with discount':()=>BOARD('Give the task first. Pairs write it in notebooks; one pair writes it on the board.')+CODE(BILL)+TABLE(['Price','Strips','Bill','Above 500?','Amount to pay'],[['120','5','600','Yes','540.0'],['50','4','200','No','200.0'],['250','3','750','Yes','675.0']])
 };
+Object.assign(PRINTACT,{
+ 'Which e-commerce model is it?':()=>BOARD('Write the eight model names on the board. Read each deal aloud; students call out the model.')+TABLE(['Deal','Model and reason'],DEALS.map(d=>[esc(d[0]),`<b>${d[1]}</b> (${MODELS[d[1]]}): ${d[2]}`])),
+ 'Put the online order in the right order':()=>BOARD('Write the steps on the board in this jumbled order. Students number them 1 to 8.')+TABLE(['Jumbled step','Correct position'],[3,0,6,1,7,4,2,5].map(i=>[esc(ORDER[i]),String(i+1)])),
+ 'Write a Google search listing':()=>BOARD('Draw a Google result: a blue title and a grey description. Ask the class to write one for Gupta Sweets, Bijnor, then check it against the four rules.')+TABLE(['Part','Example','Rule'],[['Title','Gupta Sweets Bijnor | Fresh Mithai, Order on WhatsApp','30–60 characters, includes the keyword'],['Description','Fresh kaju katli, rasgulla and Diwali gift boxes made daily in Bijnor. Home delivery and same-day orders on WhatsApp.','70–160 characters, keyword + reason to act']]),
+ 'Ad campaign calculator':()=>BOARD('Write the numbers below. Let students calculate each result step by step, then change the CTR to 4% and ask what improves.')+TABLE(['Given','Value'],[['Ad budget','₹5,000'],['CPC','₹5'],['CTR','2%'],['Conversion rate','4%'],['Average order value','₹800']])+TABLE(['Result','Working','Answer'],[['Clicks','5,000 ÷ 5','1,000'],['Impressions','1,000 ÷ 2%','50,000'],['CPM','5,000 ÷ 50,000 × 1,000','₹100'],['Orders','1,000 × 4%','40'],['Revenue','40 × ₹800','₹32,000'],['CPA','5,000 ÷ 40','₹125'],['ROAS','32,000 ÷ 5,000','6.4×']])
+});
 const PLAN={intro:'12 min',pre:'5 min',lesson:'15 min',post:'5 min'};
 function printQuiz(qs){return `<ol class="pq">${qs.map(q=>`<li><p><b>${esc(q.q)}</b></p><ol type="a">${q.o.map((o,j)=>`<li${j===q.a?' class="ok"':''}>${esc(o)}${j===q.a?' ✓':''}</li>`).join('')}</ol><p class="small muted">${esc(q.why)}</p></li>`).join('')}</ol>`}
 function printQuizStudent(qs){return `<ol class="pq">${qs.map(q=>`<li><p><b>${esc(q.q)}</b></p><ol type="a">${q.o.map(o=>`<li>${esc(o)}</li>`).join('')}</ol></li>`).join('')}</ol>`}
 function vPrint(only){
   PRINT=true;
   const list=only?LESSONS.filter(l=>l.id===only):LESSONS;
-  let h=`<section class="pcover"><p class="eyebrow">Teacher’s book</p><h1>Learn Computing Today</h1><p class="lead">${list.length>1?'Four lessons':'One lesson'} of 40 minutes: theory, diagrams, board activities, and two 10-question quizzes with answer keys.</p>${CFG.TEACHER?`<p><b>${esc(CFG.TEACHER)}</b></p>`:''}
+  let h=`<section class="pcover"><p class="eyebrow">Teacher’s book</p><h1>Learn Computing Today</h1><p class="lead">${list.length>1?list.length+' lessons':'One lesson'} of 40 minutes: theory, diagrams, board activities, and two 10-question quizzes with answer keys.</p>${CFG.TEACHER?`<p><b>${esc(CFG.TEACHER)}</b></p>`:''}
   ${TABLE(['Lesson','Part 1: Basics','Part 2: Deeper'],list.map(l=>[`<b>${l.name}</b>`,INTRO[l.id].goals.slice(0,2).map(esc).join('<br>'),esc(INTRO[l.id].goals[2])]))}</section>`;
   list.forEach((l,i)=>{const Q=QUIZ[l.id], I=INTRO[l.id];
     h+=`<div class="lessonstart"><section class="hero"><p class="eyebrow">Lesson ${LESSONS.indexOf(l)+1}</p><h1>${l.name}</h1></section>
@@ -1246,10 +1475,10 @@ async function route(){
   if(h===''&&sb){const a=await fetchActive(); if(a){location.replace('#class');return}}
   let key=h||'home';
   if(key==='results')key='reports';
-  const pm=key.match(/^print(?:-(l[1-4]))?$/);
+  const pm=key.match(/^print(?:-(l[1-9]))?$/);
   if(pm){document.body.classList.add('printmode');main.innerHTML=vPrint(pm[1]);document.title='Teacher’s book · Learn Computing Today';return}
   document.body.classList.remove('printmode');
-  const qm=key.match(/^quiz([12])-(l[1-4])$/);
+  const qm=key.match(/^quiz([12])-(l[1-9])$/);
   if(qm){main.innerHTML=vQuizPage(qm[2],+qm[1]);initQuizPage(qm[2],+qm[1]);navCur(qm[2]);document.title=(qm[1]==='1'?'Quiz 1':'Final quiz')+' · '+lessonName(qm[2]);window.scrollTo(0,0);return}
   if(LP[key]){main.innerHTML=vLesson(key);LP[key][2]()}
   else if(key==='teacher'){main.innerHTML=vTeacher();initTeacher()}
