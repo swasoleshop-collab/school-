@@ -131,6 +131,29 @@ svg text{font-family:var(--body)}
 .legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
 .qbar{display:flex;flex-direction:column;gap:6px;padding-bottom:10px;border-bottom:1px solid var(--line)}
 body.inclass .navl{display:none}
+body.printmode header.top{display:none}
+.pcover{display:flex;flex-direction:column;gap:14px;padding:24px 0}
+.pq{display:flex;flex-direction:column;gap:12px;padding-left:24px;margin:0}
+.pq>li>p{margin:0}
+.pq ol{margin:4px 0;padding-left:22px}
+.pq li.ok{font-weight:700;color:var(--good)}
+@media print{
+ @page{size:A4;margin:13mm 12mm}
+ body{background:#fff!important;font-size:10.5pt}
+ header.top,.toast{display:none!important}
+ main .wrap{padding:0!important;max-width:none;gap:12px}
+ *{animation:none!important;transition:none!important}
+ .lessonstart,.pbreak{break-before:page}
+ .defn,.ex,.fstep,.q,.note,.layer,tr,.flow,.code,svg,.keybox,.sechead,.pq>li,.fchart{break-inside:avoid}
+ .sechead{break-after:avoid}
+ .station{border:1px solid #D8D2C4;padding:14px;gap:10px}
+ .tablebox{overflow:visible}
+ th,td{white-space:normal}
+ .code .l{white-space:pre-wrap}
+ .btn{display:none}
+ h1{font-size:26pt} h2{font-size:15pt}
+}
+
 .sechead{display:flex;gap:14px;align-items:flex-start}
 .secnum{font-family:var(--display);font-weight:700;font-size:17px;background:var(--accent);color:#fff;border-radius:10px;min-width:36px;height:36px;display:grid;place-items:center;flex-shrink:0}
 .defn{background:var(--teal-soft);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:4px}
@@ -140,13 +163,13 @@ body.inclass .navl{display:none}
 .ex{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:2px}
 .ex span{font-size:14.5px;color:var(--soft)}
 .flow{display:flex;align-items:stretch;gap:6px}
-.flow.wrap{flex-wrap:wrap}
-.flow.wrap .fstep{flex:1 1 130px}
+.flow.fwrap{flex-wrap:wrap}
+.flow.fwrap .fstep{flex:1 1 130px}
 .fstep{flex:1;min-width:0;border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:4px;background:var(--sunk);animation:rowin .5s ease both}
 .fstep span{font-size:14px;color:var(--soft)}
 .farrow{align-self:center;font-weight:700;color:var(--soft);font-size:20px}
 .c-teal{background:var(--teal-soft)}.c-accent{background:var(--accent-soft)}.c-warn{background:var(--warn-soft)}.c-good{background:var(--good-soft)}.c-bad{background:var(--bad-soft)}
-td.wrap{white-space:normal;min-width:110px;vertical-align:top}
+td.tw{white-space:normal;min-width:110px;vertical-align:top}
 .keys{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
 .try{border:2px dashed var(--accent)}
 .keybox{background:var(--ink);color:var(--bg);border:0}
@@ -206,9 +229,10 @@ const DEF=(term,text)=>`<div class="defn"><p class="term">Definition · ${term}<
 const NOTE=t=>`<p class="note">${t}</p>`;
 const EX=items=>`<div class="exgrid">${items.map(([t,d])=>`<div class="ex"><b>${t}</b><span>${d}</span></div>`).join('')}</div>`;
 const FLOW=(steps,cls)=>`<div class="flow ${cls||''}">${steps.map(([t,d,c],i)=>`${i?'<span class="farrow" aria-hidden="true">→</span>':''}<div class="fstep ${c||''}" style="animation-delay:${i*140}ms"><b>${t}</b>${d?`<span>${d}</span>`:''}</div>`).join('')}</div>`;
-const TABLE=(head,rows)=>`<div class="tablebox"><table><tr>${head.map(h=>`<th>${h}</th>`).join('')}</tr>${rows.map(r=>`<tr>${r.map(c=>`<td class="wrap">${c}</td>`).join('')}</tr>`).join('')}</table></div>`;
+const TABLE=(head,rows)=>`<div class="tablebox"><table><tr>${head.map(h=>`<th>${h}</th>`).join('')}</tr>${rows.map(r=>`<tr>${r.map(c=>`<td class="tw">${c}</td>`).join('')}</tr>`).join('')}</table></div>`;
 const KEY=items=>`<ul class="keys">${items.map(i=>`<li>${i}</li>`).join('')}</ul>`;
-const TRY=(label,title,inner)=>`<section class="station try"><p class="num">Try it · ${label}</p><h3>${title}</h3>${inner}</section>`;
+let PRINT=false, PRINTACT={};
+const TRY=(label,title,inner)=>PRINT?`<section class="station try"><p class="num">Class activity · ${label}</p><h3>${title}</h3>${PRINTACT[title]?PRINTACT[title]():'<p class="muted">Interactive activity on the website.</p>'}</section>`:`<section class="station try"><p class="num">Try it · ${label}</p><h3>${title}</h3>${inner}</section>`;
 const SEC=(inner)=>`<section class="station">${inner}</section>`;
 const KEYBOX=items=>`<section class="station keybox"><p class="num">Remember</p>${KEY(items)}</section>`;
 
@@ -246,27 +270,27 @@ const QUIZ={
    Qz('Which is the safest way to use AI?',['Paste your Aadhaar for faster help','Trust every answer','Check important facts from a reliable source','Share your bank password'],2,'AI can hallucinate, so verify facts and never share private data.')]},
  l2:{title:'Cybersecurity',
   q1:[
-   Qz('Cybersecurity means…',['Making computers faster','Protecting computers, networks, data and people from digital attacks','Buying a new phone','Typing quickly'],1,'It protects systems, data and users from attack, damage and misuse.'),
-   Qz('A weakness that an attacker can use, like an unlocked door, is a…',['Threat','Vulnerability','Asset','Backup'],1,'Vulnerability = weakness. Threat = the danger that could use it.'),
-   Qz('Something valuable we must protect, such as data, money or an account, is an…',['Asset','Attack','Error','Update'],0,'Assets are what we protect.'),
-   Qz('CIA in cybersecurity stands for…',['Central Intelligence Agency','Confidentiality, Integrity, Availability','Computer, Internet, App','Code, Input, Answer'],1,'The three goals of cybersecurity.'),
-   Qz('Only you can see your bank balance. This is…',['Confidentiality','Integrity','Availability','Speed'],0,'Confidentiality: only the right people see data.'),
-   Qz('The university website crashes on result day. Which goal is broken?',['Confidentiality','Integrity','Availability','Privacy'],2,'Availability: the system must work when needed.'),
-   Qz('An ethical hacker who tests systems WITH permission is a…',['Black hat','White hat','Grey hat','Red hat'],1,'White hats find weaknesses legally so they can be fixed.'),
-   Qz('An OTP sent to your phone is “something you…”',['Know','Have','Are','Want'],1,'Your phone is something you have.'),
-   Qz('Fingerprint login is “something you…”',['Know','Have','Are','Buy'],2,'Fingerprint and face are something you are (biometrics).'),
-   Qz('Two-factor authentication (2FA) means…',['Two passwords that are the same','A password plus a second proof such as an OTP','Two phones','Logging in twice a day'],1,'Two different factors make an account much safer.')],
+   Qz('A weakness in a system that an attacker can exploit is a…',['Threat','Vulnerability','Asset','Control'],1,'Vulnerability = weakness; threat = possible cause of harm; exploit = using the weakness.'),
+   Qz('Risk is best described as…',['Threat only','Likelihood × impact','Number of users','Cost of antivirus'],1,'Risk combines how likely an attack is and how much damage it would do.'),
+   Qz('Hashing and digital signatures mainly protect…',['Confidentiality','Integrity','Availability','Speed'],1,'They detect any change to the data.'),
+   Qz('A DDoS attack on the result portal breaks…',['Confidentiality','Integrity','Availability','Non-repudiation'],2,'The service is made unavailable.'),
+   Qz('Malware that spreads across a network by itself, without a host file, is a…',['Virus','Worm','Trojan','Rootkit'],1,'A virus needs a host file and a user action; a worm spreads alone.'),
+   Qz('A cracked app that secretly opens a backdoor is a…',['Worm','Trojan','Adware','Firewall'],1,'A trojan is disguised as useful software.'),
+   Qz('Malware that hides the attacker’s presence deep in the OS is a…',['Rootkit','Keylogger','Cookie','Patch'],0,'Rootkits hide processes and files from the OS and antivirus.'),
+   Qz('A fake “bank KYC” SMS with a link is…',['Vishing','Smishing','Sniffing','Spoofing DNS'],1,'Phishing by SMS = smishing; by voice = vishing.'),
+   Qz('A UPI request saying “enter PIN to receive money” is…',['Normal','A scam: the PIN is only for sending money','Needed for refunds','A bank rule'],1,'You never need a PIN to receive money.'),
+   Qz('Social engineering attacks mainly target…',['Hardware','People','Cables','Compilers'],1,'It manipulates people using urgency, fear, authority or greed.')],
   q2:[
-   Qz('Malware that spreads by itself across a network, without a host file, is a…',['Virus','Worm','Trojan','Cookie'],1,'Worms copy themselves; viruses need a host file.'),
-   Qz('A harmful program disguised as a useful app is a…',['Trojan','Worm','Firewall','Patch'],0,'Like the Trojan horse: it looks harmless.'),
-   Qz('Malware that locks your files and demands money is…',['Spyware','Adware','Ransomware','Freeware'],2,'Ransomware holds data for ransom.'),
-   Qz('A fake SMS that tries to steal your details is called…',['Vishing','Smishing','Coding','Spamming'],1,'Phishing by SMS = smishing; by voice call = vishing.'),
-   Qz('To RECEIVE money on UPI you need…',['Your UPI PIN','An OTP','Nothing: no PIN is needed to receive','Your ATM PIN'],2,'The UPI PIN is only for sending money.'),
-   Qz('Which password is strongest?',['rahul123','P@ss1','12345678','Mango-Bus-Pencil-River-47'],3,'Length matters most; a long passphrase is very hard to guess.'),
-   Qz('The padlock (https) in the address bar means…',['The website is honest','The connection is encrypted','The site is a government site','The site has no ads'],1,'It only means encryption. Scam sites can have a padlock too.'),
-   Qz('Encryption turns readable data into…',['Faster data','Unreadable code that only the right key can unlock','A picture','Deleted data'],1,'Plain text + key → cipher text.'),
-   Qz('Which number do you call to report cyber fraud in India?',['100','1930','108','1098'],1,'1930 is the national cyber crime helpline.'),
-   Qz('India’s main law for cyber crime is the…',['Information Technology Act, 2000','Motor Vehicles Act','Right to Education Act','Companies Act'],0,'The IT Act, 2000 covers hacking, identity theft and online fraud.')]},
+   Qz('Encryption that uses the same key to encrypt and decrypt is…',['Asymmetric (RSA)','Symmetric (AES)','Hashing','Encoding'],1,'Symmetric = one shared secret key; AES is the standard.'),
+   Qz('To send a secret message that only Riya can read, encrypt it with…',['Your private key','Riya’s public key','Riya’s private key','No key'],1,'Only Riya’s private key can decrypt what her public key encrypted.'),
+   Qz('The key property of a cryptographic hash is that it is…',['Reversible with a key','One-way: it cannot be reversed','Random every time','Longer than the input'],1,'Same input → same hash, but you cannot get the input back.'),
+   Qz('Adding a random salt before hashing passwords…',['Makes logins faster','Defeats rainbow tables: same passwords get different hashes','Encrypts the database','Removes the need for HTTPS'],1,'Each user has a unique salt, so precomputed tables are useless.'),
+   Qz('A digital signature is created with the…',['Receiver’s public key','Sender’s private key','Sender’s public key','A shared password'],1,'Sign with your private key; anyone verifies with your public key.'),
+   Qz('In TLS (HTTPS), the bulk data is encrypted…',['Only with RSA','With a symmetric session key agreed using asymmetric crypto','With MD5','Not at all'],1,'Hybrid: asymmetric for key exchange, symmetric (AES) for speed.'),
+   Qz('Typing  \' OR \'1\'=\'1  in a password box is an attempt at…',['XSS','SQL injection','DDoS','Phishing'],1,'It changes the SQL so the WHERE condition is always true.'),
+   Qz('The best defence against SQL injection is…',['A longer password','Parameterised (prepared) queries','Hiding the login page','Antivirus'],1,'Input is sent as data, never run as SQL code.'),
+   Qz('The difference between an IDS and an IPS is…',['No difference','IDS only alerts; IPS also blocks','IPS only alerts; IDS blocks','IDS is a firewall brand'],1,'Detection vs prevention.'),
+   Qz('Misusing someone’s password to log into their account (identity theft) falls under IT Act…',['Section 66C','Section 67','Section 43A','Section 80'],0,'66C = identity theft; 66D = cheating by personation.')]},
  l3:{title:'Databases & SQL',
   q1:[
    Qz('Raw facts such as 85, 72, 90 are called…',['Data','Information','Knowledge','Software'],0,'Data is raw facts without meaning yet.'),
@@ -387,7 +411,7 @@ DEF('AI model','The trained “brain” that produces the answer. Large models r
 DEF('Database','Where data is stored safely: users, chat history, settings.')+
 DEF('Cloud / data centre','Buildings full of servers, rented over the internet, where the back end, model and database run.')+
 `<p class="label">What happens when you send one message to ChatGPT</p>`+
-FLOW([['1. You type','in the chat box (front end)','c-teal'],['2. Request','sent over the internet through an API','c-teal'],['3. Back end','checks your login and saves the chat','c-accent'],['4. AI model','predicts the reply on GPU servers','c-warn'],['5. Response','back end sends the answer back','c-accent'],['6. You read','the front end shows it word by word','c-good']],'wrap')+
+FLOW([['1. You type','in the chat box (front end)','c-teal'],['2. Request','sent over the internet through an API','c-teal'],['3. Back end','checks your login and saves the chat','c-accent'],['4. AI model','predicts the reply on GPU servers','c-warn'],['5. Response','back end sends the answer back','c-accent'],['6. You read','the front end shows it word by word','c-good']],'fwrap')+
 TABLE(['Restaurant','AI app'],[['Menu and table where you sit','Front end'],['Waiter who takes your order to the kitchen','API'],['Kitchen and its manager','Back end'],['The chef who cooks the dish','AI model'],['Store room of ingredients','Database'],['The building that houses it all','Cloud / data centre']]))}
 ${SEC(H(10,'Inside a language model','How ChatGPT writes')+
 DEF('Large Language Model (LLM)','An AI model trained on a huge amount of text to understand and generate language. It works on <b>tokens</b>, small pieces of words, and writes by <b>predicting the next token</b> again and again.')+
@@ -447,75 +471,94 @@ function initL1(){
   ['p-role','p-task','p-ctx','p-fmt'].forEach(id=>on(id,'input',updPrompt));
 }
 
-/* ================= LESSON 2: CYBERSECURITY ================= */
-const CIA={c:['Confidentiality','Only the right people can see the data. Example: only you see your bank balance and marks.'],i:['Integrity','Data stays correct and is not changed wrongly. Example: nobody can turn ₹500 into ₹50,000, or change marks in the result.'],a:['Availability','The system works when people need it. Example: UPI works at 10 pm when you buy medicine; the result site works on result day.']};
+/* ================= LESSON 2: CYBERSECURITY (MCA level) ================= */
+const CIA={c:['Confidentiality','Only authorised people can read the data. Tools: encryption, access control. Example: only you see your marks and bank balance.'],i:['Integrity','Data is not changed without authorisation, and changes can be detected. Tools: hashing, digital signatures. Example: nobody can change ₹500 to ₹50,000.'],a:['Availability','The system works when needed. Threat: DoS/DDoS. Tools: redundancy, backups, load balancing. Example: the result portal stays up on result day.']};
 const SCAMS=[
- {m:'SMS: “Dear customer, your SBI KYC expires today. Update now: sbi-kyc-update.co/login”',fake:true,why:'Urgency, and the link is not the bank’s real website.'},
- {m:'SMS: “482913 is your OTP for login. Do not share it with anyone.”',fake:false,why:'A normal OTP message. Still: never share an OTP with anyone, even “the bank”.'},
- {m:'WhatsApp: “Congratulations! You won ₹25,000 in a KBC lottery. Pay ₹999 processing fee to claim.”',fake:true,why:'You never pay money to receive a prize.'},
- {m:'Video call: “This is Mumbai Police. A drugs parcel is linked to your Aadhaar. Stay on the call, you are under digital arrest.”',fake:true,why:'There is no such thing as “digital arrest”. Police never arrest on a video call or ask for money.'},
- {m:'UPI: a collect request for ₹2,000 saying “Enter PIN to receive your refund.”',fake:true,why:'Your UPI PIN is only for sending money, never for receiving.'},
- {m:'Email from no-reply@accounts.google.com: “New sign-in to your account from a Windows device. If this was you, no action needed.”',fake:false,why:'A real security alert format with no request for a password or OTP. If unsure, open Google Account yourself instead of clicking.'}
+ {m:'SMS: “Dear customer, your SBI KYC expires today. Update now: sbi-kyc-update.co/login”',fake:true,why:'Urgency plus a look-alike domain. Classic smishing.'},
+ {m:'SMS: “482913 is your OTP for login. Do not share it with anyone.”',fake:false,why:'Normal OTP format. Still: never share an OTP.'},
+ {m:'Video call: “This is Mumbai Police. A drugs parcel is linked to your Aadhaar. Stay on the call, you are under digital arrest.”',fake:true,why:'“Digital arrest” does not exist in law. Pure social engineering using fear.'},
+ {m:'UPI: a collect request for ₹2,000 saying “Enter PIN to receive your refund.”',fake:true,why:'The UPI PIN authorises sending money only.'}
 ];
+const USERS=[['admin','Adm!n#2026'],['riya','riya@123']];
 function L2P1(){return `
-${SEC(H(1,'What is cybersecurity?','The definition, and why it matters to everyone')+
-DEF('Cybersecurity','The practice of protecting <b>computers, networks, programs, data and people</b> from digital attacks, damage and unauthorised access.')+
-`<p>Today our money (UPI, net banking), identity (Aadhaar, PAN), studies (online results, ERP) and health records are all online. Protecting them is cybersecurity.</p>`+
-EX([['UPI and net banking','your money'],['Aadhaar and DigiLocker','your identity'],['Instagram and WhatsApp','your private life'],['University ERP','marks and attendance'],['Hospital systems','patient records'],['Email','the key to all other accounts']]))}
-${SEC(H(2,'Five words every security expert uses','Explained with a house')+
-TABLE(['Term','Meaning','House example','Online example'],[['<b>Asset</b>','Something valuable to protect','Gold in the cupboard','Your bank account'],['<b>Threat</b>','Anything that can cause harm','A thief in the area','A scammer sending fake links'],['<b>Vulnerability</b>','A weakness that can be used','Door left unlocked','Weak password, old app'],['<b>Attack</b>','An attempt to use the weakness','Thief enters the house','Scammer logs in to your account'],['<b>Risk</b>','Chance of harm × how bad it is','Unlocked door + thief nearby = high risk','Weak password + no 2FA = high risk']])+
-NOTE('We cannot remove every threat, but we can remove vulnerabilities. That is what lowers risk.'))}
-${SEC(H(3,'The CIA triad','The three goals of cybersecurity')+
-DEF('CIA triad','<b>Confidentiality</b> (keep it secret), <b>Integrity</b> (keep it correct), <b>Availability</b> (keep it working). Every security tool protects at least one of these.'))}
+${SEC(H(1,'Quick revision: what cybersecurity protects','You studied these in first year; we revise in 10 minutes')+
+DEF('Cybersecurity','Protecting computer systems, networks, programs and data from digital attacks, damage and unauthorised access.')+
+TABLE(['Term','Meaning','Example'],[['<b>Asset</b>','Anything of value','Student database, bank account'],['<b>Threat</b>','A possible cause of harm','Attacker, malware, insider, flood'],['<b>Vulnerability</b>','A weakness that can be exploited','Unpatched server, weak password, SQL built from user input'],['<b>Exploit / Attack</b>','Using the vulnerability','SQL injection that dumps the database'],['<b>Risk</b>','Likelihood × impact','Public login page + SQL injection = high risk'],['<b>Control</b>','A measure that reduces risk','Patching, input validation, MFA, firewall']]))}
+${SEC(H(2,'The CIA triad','The three security goals, and the tools that protect each')+
+TABLE(['Goal','Protects against','Main tools'],[['<b>Confidentiality</b>','Data leaks, eavesdropping','Encryption, access control, MFA'],['<b>Integrity</b>','Unauthorised changes, tampering','Hashing, digital signatures, checksums'],['<b>Availability</b>','DoS/DDoS, hardware failure, ransomware','Redundancy, backups, load balancers, DDoS protection']])+
+NOTE('Two more goals are often added: <b>Authentication</b> (who you are) and <b>Non-repudiation</b> (you cannot deny you sent it).'))}
 ${TRY('1','Tap each corner of the triangle',`<svg viewBox="0 0 460 300" role="img" aria-label="Triangle with corners Confidentiality, Integrity and Availability" style="width:100%;max-width:480px;align-self:center">
 <polygon points="230,30 60,260 400,260" fill="var(--teal-soft)" stroke="var(--teal)" stroke-width="3"/>
 <g data-cia="c" style="cursor:pointer"><circle cx="230" cy="30" r="26" fill="var(--teal)"/><text x="230" y="37" font-size="20" font-weight="700" text-anchor="middle" fill="#fff">C</text></g>
 <g data-cia="i" style="cursor:pointer"><circle cx="60" cy="260" r="26" fill="var(--teal)"/><text x="60" y="267" font-size="20" font-weight="700" text-anchor="middle" fill="#fff">I</text></g>
 <g data-cia="a" style="cursor:pointer"><circle cx="400" cy="260" r="26" fill="var(--teal)"/><text x="400" y="267" font-size="20" font-weight="700" text-anchor="middle" fill="#fff">A</text></g>
-<text x="230" y="185" font-size="18" font-weight="700" text-anchor="middle" fill="var(--teal)">Keep data safe</text></svg>
+<text x="230" y="185" font-size="18" font-weight="700" text-anchor="middle" fill="var(--teal)">Security goals</text></svg>
 <div class="row"><button class="btn" data-ciab="c">Confidentiality</button><button class="btn" data-ciab="i">Integrity</button><button class="btn" data-ciab="a">Availability</button></div>
 <p class="feedback info" id="ciafb">Tap C, I or A.</p>`)}
-${SEC(H(4,'Who are hackers?','Not every hacker is a criminal')+
-DEF('Hacker','A person who uses technical skill to get into computer systems. What makes it good or bad is <b>permission</b>.')+
-TABLE(['Type','Permission?','Why they do it'],[['<b>White hat</b> (ethical hacker)','<span class="tag good">Yes</span>','Find weaknesses so companies can fix them. A real career.'],['<b>Black hat</b>','<span class="tag bad">No</span>','Steal money or data, cause damage. A crime.'],['<b>Grey hat</b>','<span class="tag warn">No</span>','Break in without permission, then report it. Still illegal.']]))}
-${SEC(H(5,'Authentication: proving it is really you','Three kinds of proof, called factors')+
-DEF('Authentication','Checking a user’s identity before giving access.')+
-TABLE(['Factor','Example'],[['Something you <b>know</b>','Password, PIN, security question'],['Something you <b>have</b>','Your phone (OTP), ATM card, security key'],['Something you <b>are</b>','Fingerprint, face, iris (biometrics)']])+
-DEF('Two-factor authentication (2FA)','Using <b>two different factors</b>, for example a password plus an OTP. Even if a password is stolen, the account stays safe.')+
-FLOW([['Password','something you know','c-teal'],['OTP on phone','something you have','c-accent'],['Access','only if both are right','c-good']]))}
-${KEYBOX(['Cybersecurity protects systems, data and people.','Asset, threat, vulnerability, attack, risk.','CIA = Confidentiality, Integrity, Availability.','Hacking is legal only with permission (white hat).','2FA = two different factors: know, have, are.'])}`}
+${SEC(H(3,'Malware families','Know them by how they spread and what they do')+
+TABLE(['Type','Spreads by','Does'],[['<b>Virus</b>','Attaching to a host file; needs the user to run it','Corrupts or deletes data'],['<b>Worm</b>','Itself, across networks, using a vulnerability','Floods networks, drops other malware'],['<b>Trojan</b>','Disguised as useful software (cracked apps, fake APKs)','Opens a backdoor, steals data'],['<b>Ransomware</b>','Phishing, exposed remote desktop, worms','Encrypts files, demands payment'],['<b>Spyware / keylogger</b>','Bundled apps, trojans','Records keystrokes, screens, passwords'],['<b>Rootkit</b>','Deep in the OS after another infection','Hides the attacker’s presence']]))}
+${SEC(H(4,'Social engineering','The human is often the weakest link')+
+DEF('Social engineering','Manipulating people into breaking security, using urgency, fear, authority, greed or trust. Phishing (email), smishing (SMS), vishing (voice), pretexting and baiting are all forms of it.'))}
+${TRY('2','Spot the scam: real or fake?',`<p class="muted">Score: <b id="scamscore">0</b> / ${SCAMS.length}</p>${SCAMS.map((s,i)=>`<div class="scam" id="sc${i}"><p class="msg">${esc(s.m)}</p><div class="row"><button class="btn" data-scam="${i}" data-v="real">Real</button><button class="btn" data-scam="${i}" data-v="fake">Fake</button></div><p class="feedback" hidden></p></div>`).join('')}`)}
+${KEYBOX(['Asset, threat, vulnerability, exploit, risk, control.','CIA: encryption → confidentiality, hashing/signatures → integrity, redundancy → availability.','Virus needs a host; worm spreads alone; trojan disguises itself; ransomware encrypts.','Social engineering attacks people, not machines.'])}`}
 
 function L2P2(){return `
-${SEC(H(6,'Malware: harmful software','The main types, and how they get in')+
-DEF('Malware','Short for <b>malicious software</b>: any program written to harm a device, steal data or take control.')+
-TABLE(['Type','What it does','How it spreads'],[['<b>Virus</b>','Attaches to a file and damages data','Runs when you open the infected file'],['<b>Worm</b>','Copies itself to other computers','Spreads by itself over a network'],['<b>Trojan</b>','Looks useful but hides harmful code','Fake or cracked apps, “free” software'],['<b>Ransomware</b>','Locks your files and demands money','Email attachments, unsafe downloads'],['<b>Spyware</b>','Secretly watches you and steals data','Hidden inside apps'],['<b>Adware</b>','Floods you with unwanted ads','Free apps from unknown sources']])+
-NOTE('Most malware enters through things <b>we</b> do: installing APKs from WhatsApp, cracked games, unknown USB drives, or opening email attachments from strangers.'))}
-${SEC(H(7,'Social engineering and phishing','Tricking the person, not the computer')+
-DEF('Social engineering','Manipulating people into giving away information or money, using fear, greed, urgency or trust.')+
-DEF('Phishing','A fake message or website that pretends to be a trusted company to steal passwords, OTPs or money.')+
-TABLE(['Name','Channel','Common Indian example'],[['Phishing','Email or website','Fake “bank” login page'],['Smishing','SMS','“Your KYC expires today, click here”'],['Vishing','Voice call','“I am calling from your bank, tell me the OTP”'],['Digital arrest scam','Video call','Fake police say you are “arrested online”'],['UPI collect scam','UPI app','“Enter PIN to receive refund”']])+
-`<p class="label">Three warning signs</p><div class="chips"><span class="tag bad">Urgency or fear</span><span class="tag bad">A strange link</span><span class="tag bad">Asks for OTP, PIN or money</span></div>`)}
-${TRY('2','Spot the scam: real or fake?',`<p class="muted">Score: <b id="scamscore">0</b> / ${SCAMS.length}</p>${SCAMS.map((s,i)=>`<div class="scam" id="sc${i}"><p class="msg">${esc(s.m)}</p><div class="row"><button class="btn" data-scam="${i}" data-v="real">Real</button><button class="btn" data-scam="${i}" data-v="fake">Fake</button></div><p class="feedback" hidden></p></div>`).join('')}`)}
-${SEC(H(8,'How passwords get cracked','And how to make yours safe')+
-TABLE(['Attack','How it works'],[['<b>Brute force</b>','A computer tries every possible combination, billions per second'],['<b>Dictionary attack</b>','Tries common words and passwords: password, 123456, india@123'],['<b>Credential stuffing</b>','Uses passwords leaked from one site to log in to other sites']])+
-KEY(['Use a <b>long passphrase</b>: four random words and a number.','Use a <b>different password</b> for every important account.','Turn on <b>2FA</b> everywhere.','A <b>password manager</b> app can remember them for you.']))}
-${TRY('3','How long to crack a password?',`<p class="muted small">Never type your real password on any website. Make one up.</p>
-<label class="fld">Type a sample password<input id="pw" autocomplete="off" spellcheck="false" placeholder="Try: rahul123, then Mango-Bus-Pencil-River-47"></label>
-<div class="meter" aria-hidden="true"><i id="pwm"></i></div><p class="big" id="pwt" style="color:var(--accent)">–</p><p class="muted small" id="pwd">At 10 billion guesses a second.</p>`)}
-${SEC(H(9,'Encryption and HTTPS','How data stays secret on its way')+
-DEF('Encryption','Turning readable data (<b>plain text</b>) into unreadable code (<b>cipher text</b>) using a <b>key</b>. Only someone with the right key can turn it back (<b>decryption</b>).')+
-FLOW([['Plain text','“Pay ₹500 to Riya”','c-teal'],['Encrypt with key','lock','c-accent'],['Cipher text','“X7#qL9@pZ!2…” travels online','c-warn'],['Decrypt with key','unlock','c-accent'],['Plain text','“Pay ₹500 to Riya”','c-good']],'wrap')+
-DEF('HTTPS and the padlock','HTTPS means the connection between your browser and the website is encrypted. It does <b>not</b> prove the website is honest: scam sites can have a padlock too. Always check the website name.')+
-NOTE('WhatsApp uses <b>end-to-end encryption</b>: only the sender and receiver can read messages, not even WhatsApp. Avoid banking on public Wi-Fi; use mobile data.'))}
-${SEC(H(10,'Defence in depth','Many layers, so one failure is not a disaster')+
-`<div class="layers">${[['You: awareness','Spot scams, never share OTP or PIN'],['Strong passwords + 2FA','Stops account takeover'],['Updates (patches)','Close known holes in apps and the OS'],['Antivirus','Detects and removes malware'],['Firewall','Blocks unwanted network traffic'],['Backups','Recover files after ransomware or loss']].map(([t,d],i)=>`<div class="layer" style="margin-inline:${i*14}px;animation-delay:${i*120}ms"><b>${t}</b><span>${d}</span></div>`).join('')}</div>`+
-DEF('Firewall','A security system that checks network traffic and blocks anything that breaks its rules, like a gatekeeper.')+
-DEF('Patch / update','A fix released by the company to close a security hole. Install updates quickly.'))}
-${SEC(H(11,'Cyber law and reporting fraud','What to do if it happens to you')+
-DEF('Information Technology Act, 2000','India’s main law for cyber crime: hacking, identity theft, online fraud and data misuse are punishable offences.')+
-FLOW([['Call 1930','national cyber crime helpline, at once','c-bad'],['Report online','cybercrime.gov.in','c-accent'],['Tell your bank','block the card or UPI','c-teal'],['Change passwords','and turn on 2FA','c-good']])+
-NOTE('The faster you call 1930, the better the chance of freezing the stolen money.'))}
-${KEYBOX(['Malware: virus, worm, trojan, ransomware, spyware, adware.','Phishing, smishing, vishing: urgency, strange link, asks for OTP/PIN.','Long passphrase + different passwords + 2FA.','Encryption: plain text → cipher text with a key; HTTPS = encrypted, not honest.','Layers of defence; report fraud on 1930 and cybercrime.gov.in.'])}`}
+${SEC(H(5,'Cryptography: the basic vocabulary','The science of keeping messages secret and trustworthy')+
+DEF('Cryptography','The study of techniques to secure information using mathematics: <b>plaintext</b> is turned into <b>ciphertext</b> by an algorithm (<b>cipher</b>) and a <b>key</b>; decryption reverses it.')+
+NOTE('<b>Kerckhoffs’s principle:</b> a system must stay secure even if everyone knows the algorithm. Only the key must be secret. That is why AES and RSA are public standards.'))}
+${TRY('3','Caesar cipher: the oldest cipher',`<p class="muted">Each letter shifts by the key. Try to read it back, then think: how many keys would an attacker need to try?</p>
+<div class="two"><label class="fld">Plaintext<input id="cz-in" value="ATTACK AT DAWN" spellcheck="false"></label><label class="fld"><span>Key (shift): <b id="cz-kv">3</b></span><input id="cz-k" type="range" min="1" max="25" value="3"></label></div>
+<p class="out" id="cz-out"></p><p class="small muted">Only 25 possible keys, so a computer breaks it instantly by trying them all (brute force). Modern AES-256 has 2²⁵⁶ possible keys.</p>`)}
+${SEC(H(6,'Symmetric and asymmetric encryption','One shared key, or a public/private key pair')+
+`<p class="label">Symmetric: the same secret key locks and unlocks</p>`+
+FLOW([['Plaintext','“Fees paid”','c-teal'],['Encrypt','shared key K','c-accent'],['Ciphertext','travels on the network','c-warn'],['Decrypt','same key K','c-accent'],['Plaintext','“Fees paid”','c-good']],'fwrap')+
+`<p class="label">Asymmetric: anyone encrypts with the receiver’s public key; only the receiver’s private key decrypts</p>`+
+FLOW([['Plaintext','“Fees paid”','c-teal'],['Encrypt','Riya’s PUBLIC key','c-accent'],['Ciphertext','travels on the network','c-warn'],['Decrypt','Riya’s PRIVATE key','c-bad'],['Plaintext','only Riya can read it','c-good']],'fwrap')+
+TABLE(['','Symmetric','Asymmetric (public-key)'],[['Keys','One shared secret key','Key pair: public + private'],['Examples','AES (standard), DES/3DES (old)','RSA, ECC (elliptic curve)'],['Speed','Very fast; used for bulk data','Slow; used for small data and keys'],['Main problem','How to share the key safely?','Slower, needs bigger keys'],['Used in','Disk and file encryption, Wi-Fi (WPA2/3)','Key exchange, digital signatures, certificates']])+
+NOTE('Real systems use <b>both</b> (hybrid encryption): asymmetric to agree on a key safely, then symmetric to encrypt the data quickly. HTTPS works this way.'))}
+${SEC(H(7,'Hashing and storing passwords safely','A one-way fingerprint of data')+
+DEF('Hash function','Turns any input into a fixed-length output (digest). It is <b>one-way</b> (cannot be reversed), <b>deterministic</b> (same input → same hash), and a tiny change in the input changes the whole hash (<b>avalanche effect</b>). Examples: SHA-256 (secure), MD5 and SHA-1 (broken, do not use).')+
+TABLE(['How a site stores your password','Problem'],[['Plain text: <code>riya@123</code>','<span class="tag bad">Terrible</span> One leak exposes every password'],['Plain hash: SHA-256(<code>riya@123</code>)','<span class="tag warn">Weak</span> Same passwords give the same hash; attackers use precomputed <b>rainbow tables</b>'],['<b>Salted, slow hash</b>: bcrypt / Argon2(salt + password)','<span class="tag good">Correct</span> A random salt per user makes every hash unique; slow hashing makes guessing expensive']]))}
+${TRY('4','Live SHA-256: see the avalanche effect',`<p class="muted">Type anything. Change one letter and watch the whole hash change. Tick “add salt” to see how a salt changes it again.</p>
+<label class="fld">Input<input id="hs-in" value="riya@123" spellcheck="false" style="font-family:var(--mono)"></label>
+<label class="opt" style="max-width:260px"><input type="checkbox" id="hs-salt"> <span>Add a random salt</span></label>
+<p class="out" id="hs-out" style="word-break:break-all"></p>`)}
+${TRY('5','How long to brute-force a password?',`<p class="muted small">Never type a real password. Make one up.</p>
+<label class="fld">Sample password<input id="pw" autocomplete="off" spellcheck="false" placeholder="Try: rahul123, then Mango-Bus-Pencil-River-47"></label>
+<div class="meter" aria-hidden="true"><i id="pwm"></i></div><p class="big" id="pwt" style="color:var(--accent)">–</p><p class="muted small" id="pwd">At 10 billion guesses a second (a fast, unsalted hash on GPUs).</p>`)}
+${SEC(H(8,'Digital signatures and certificates','Proving who sent it, and that it was not changed')+
+DEF('Digital signature','The sender hashes the message and encrypts the hash with their <b>private key</b>. Anyone can verify it with the sender’s <b>public key</b>. It gives <b>authentication</b>, <b>integrity</b> and <b>non-repudiation</b>.')+
+FLOW([['Message','“Pay ₹500”','c-teal'],['Hash it','SHA-256 digest','c-accent'],['Sign','encrypt digest with sender’s PRIVATE key','c-bad'],['Send','message + signature','c-warn'],['Verify','decrypt with sender’s PUBLIC key; hashes match?','c-good']],'fwrap')+
+DEF('Digital certificate','A file, signed by a trusted <b>Certificate Authority (CA)</b>, that binds a public key to an identity such as <code>sbi.co.in</code>. Browsers trust a list of CAs. In India, digital signatures for documents are legally valid under the IT Act.'))}
+${SEC(H(9,'How HTTPS (TLS) works','Hybrid encryption in every padlock')+
+FLOW([['1. Client Hello','browser lists the ciphers it supports','c-teal'],['2. Server Hello + certificate','server sends its public key, signed by a CA','c-accent'],['3. Verify','browser checks the certificate and domain','c-warn'],['4. Key exchange','both sides derive a shared session key (asymmetric)','c-bad'],['5. Secure session','all data encrypted with the session key (symmetric, e.g. AES)','c-good']],'fwrap')+
+NOTE('The padlock proves the connection is encrypted and the certificate matches the domain. It does not prove the site is honest: phishing sites can have valid certificates for look-alike domains.'))}
+${SEC(H(10,'Authentication and access control','Who are you, and what are you allowed to do?')+
+TABLE(['Factor','Examples'],[['Something you know','password, PIN'],['Something you have','phone OTP, authenticator app, security key'],['Something you are','fingerprint, face']])+
+TABLE(['Access control model','Who decides access','Example'],[['<b>DAC</b> (Discretionary)','The owner of the resource','You share a Google Drive file with a friend'],['<b>MAC</b> (Mandatory)','System-wide labels (Secret, Top Secret)','Military and government systems'],['<b>RBAC</b> (Role-Based)','The user’s role','University ERP: student sees own marks; faculty edits marks; admin manages users']])+
+DEF('Principle of least privilege','Give every user and program only the access it needs, and nothing more. It limits the damage from a stolen account.'))}
+${SEC(H(11,'Web application security: OWASP Top 10 (2025)','The ten most critical risks to web applications')+
+TABLE(['#','Risk','Simple example'],[['A01','Broken Access Control','Changing <code>?student_id=101</code> to <code>102</code> shows another student’s marks'],['A02','Security Misconfiguration','Default admin password, error pages that show code'],['A03','Software Supply Chain Failures','A malicious or outdated library inside your app'],['A04','Cryptographic Failures','Passwords stored in plain text, no HTTPS'],['A05','Injection','SQL injection, command injection'],['A06','Insecure Design','No limit on OTP attempts, so OTPs can be guessed'],['A07','Authentication Failures','No lockout, weak password rules, no MFA'],['A08','Software or Data Integrity Failures','Installing updates without checking their signature'],['A09','Security Logging and Alerting Failures','Attacks happen and nobody notices'],['A10','Mishandling of Exceptional Conditions','An error leaves the app in an unsafe state']])+
+DEF('SQL injection','When user input is pasted directly into an SQL query, an attacker can type SQL code that changes the query’s meaning, for example to log in without a password or read the whole database.')+
+CODE(["# VULNERABLE: input glued into the query","query = \"SELECT * FROM users WHERE username = '\" + u + \"' AND password = '\" + p + \"'\"","","# SAFE: parameterised (prepared) query","cursor.execute(\"SELECT * FROM users WHERE username = ? AND password = ?\", (u, p))"]))}
+${TRY('6','SQL injection lab: log in without the password',`<p class="muted">A practice login with two users. Try a normal login, then try the attack inputs. Switch between the vulnerable and safe code.</p>
+<div class="row"><button class="btn on" id="sq-vuln">Vulnerable code</button><button class="btn" id="sq-safe">Safe code (parameterised)</button></div>
+<div class="two"><label class="fld">Username<input id="sq-u" value="riya" spellcheck="false" autocomplete="off" style="font-family:var(--mono)"></label><label class="fld">Password<input id="sq-p" value="riya@123" spellcheck="false" autocomplete="off" style="font-family:var(--mono)"></label></div>
+<div class="chips"><button class="chip" data-sq="riya|riya@123">Normal login</button><button class="chip" data-sq="riya|wrong">Wrong password</button><button class="chip" data-sq="admin|' OR '1'='1">Attack 1: ' OR '1'='1</button><button class="chip" data-sq="admin' --|anything">Attack 2: admin' --</button></div>
+<div class="row"><button class="btn primary" id="sq-go">Log in</button></div>
+<p class="label">Query the server runs</p><div class="code"><span class="l" id="sq-q"></span></div><p class="feedback info" id="sq-out">Press Log in.</p>`)}
+${SEC(H(12,'Cross-site scripting (XSS)','Injecting script into other people’s browsers')+
+DEF('XSS','The attacker puts JavaScript into a page (for example in a comment). When other users open the page, the script runs in their browser and can steal session cookies or change what they see.')+
+TABLE(['Type','How'],[['Stored XSS','Script saved in the database, e.g. a comment: <code>&lt;script&gt;steal(document.cookie)&lt;/script&gt;</code>'],['Reflected XSS','Script inside a link, reflected back in the page'],['DOM-based XSS','Page’s own JavaScript inserts unsafe input into the page']])+
+KEY(['<b>Defence:</b> encode output (show <code>&lt;</code> as text, never as HTML).','Validate input, use a Content Security Policy (CSP), mark cookies HttpOnly.']))}
+${SEC(H(13,'Network attacks and defences','Attacks on data in transit and on availability')+
+TABLE(['Attack','How it works','Defence'],[['<b>Man-in-the-Middle (MITM)</b>','Attacker secretly sits between two parties, e.g. a fake public Wi-Fi or ARP spoofing','TLS everywhere, VPN on public Wi-Fi, certificate checks'],['<b>DoS / DDoS</b>','Flooding a server with traffic; DDoS uses a botnet of thousands of infected devices','Rate limiting, CDN and DDoS protection, extra capacity'],['<b>Sniffing</b>','Capturing packets on a network (e.g. with Wireshark)','Encryption (HTTPS, SSH, WPA3)'],['<b>DNS spoofing</b>','Fake DNS answer sends you to a fake site','DNSSEC, HTTPS certificate checks'],['<b>Brute force / credential stuffing</b>','Trying many passwords, or leaked ones from other sites','Lockout, CAPTCHA, MFA']])+
+TABLE(['Tool','What it does'],[['Packet-filter firewall','Allows or blocks by IP address and port'],['Stateful firewall','Tracks connections; allows only replies to valid requests'],['Web Application Firewall (WAF)','Blocks web attacks like SQL injection and XSS'],['IDS (Intrusion Detection System)','Watches traffic and <b>alerts</b> on attacks'],['IPS (Intrusion Prevention System)','Watches traffic and <b>blocks</b> attacks automatically'],['VPN','Encrypted tunnel over an untrusted network']]))}
+${SEC(H(14,'Cyber law, privacy and careers in India','What the law says, and where the jobs are')+
+TABLE(['IT Act, 2000','Covers'],[['Section 43','Unauthorised access or damage to a computer: compensation'],['Section 66','Computer-related offences such as hacking with dishonest intent'],['Section 66C','Identity theft: misusing someone’s password or electronic signature'],['Section 66D','Cheating by personation using a computer: phishing calls, fake profiles'],['Section 66E','Violation of privacy: capturing or publishing private images'],['Section 67','Publishing obscene material electronically']])+
+DEF('Digital Personal Data Protection (DPDP) Act, 2023','India’s data protection law. A company (<b>data fiduciary</b>) must take your (<b>data principal</b>’s) consent, use data only for the stated purpose, protect it, and report breaches. You can ask to see, correct or erase your data. Penalties go up to ₹250 crore per breach.')+
+KEY(['<b>CERT-In</b> is India’s national agency for cyber incidents; organisations must report incidents to it within 6 hours.','Citizens report fraud on <b>1930</b> and <b>cybercrime.gov.in</b>.','<b>Careers:</b> SOC analyst, penetration tester, security engineer, cloud security engineer, forensic analyst.','<b>Certifications:</b> CompTIA Security+, CEH, OSCP. Practise legally on CTF platforms and your own lab, never on real sites without written permission.']))}
+${KEYBOX(['Symmetric (AES) = one key, fast; asymmetric (RSA/ECC) = key pair; HTTPS uses both.','Hashes are one-way; store passwords as salted, slow hashes (bcrypt/Argon2).','Signature = hash signed with the private key, verified with the public key.','OWASP Top 10 2025; stop SQL injection with parameterised queries, XSS with output encoding.','MITM, DDoS, IDS vs IPS; IT Act 66C/66D, DPDP Act 2023, CERT-In.'])}`}
 
 function crack(pw){
   if(!pw)return null; let cs=0;
@@ -526,6 +569,34 @@ function human(s){
   if(s<1)return 'Instantly'; if(s<60)return Math.round(s)+' seconds'; if(s<3600)return Math.round(s/60)+' minutes'; if(s<86400)return Math.round(s/3600)+' hours';
   if(s<31557600)return Math.round(s/86400)+' days'; const y=s/31557600;
   if(y<1e3)return Math.round(y)+' years'; if(y<1e6)return Math.round(y/1e3)+' thousand years'; if(y<1e9)return (y/1e6).toFixed(1)+' million years'; return 'Billions of years';
+}
+const caesar=(t,k)=>t.replace(/[a-z]/gi,c=>{const b=c<='Z'?65:97;return String.fromCharCode((c.charCodeAt(0)-b+k)%26+b)});
+async function sha256(t){const d=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));return [...new Uint8Array(d)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+let SQMODE='vuln', SALT='';
+function sqRun(){
+  const u=$('sq-u').value, p=$('sq-p').value, vuln=SQMODE==='vuln';
+  const q=vuln?`SELECT * FROM users WHERE username = '${u}' AND password = '${p}';`:`SELECT * FROM users WHERE username = ? AND password = ?;   -- values sent separately: ['${u}', '${p}']`;
+  $('sq-q').textContent=q;
+  let row=null, err=null;
+  if(SQLDB){
+    try{
+      SQLDB.run(`DROP TABLE IF EXISTS users; CREATE TABLE users(username TEXT, password TEXT); INSERT INTO users VALUES ('admin','Adm!n#2026'),('riya','riya@123');`);
+      if(vuln){const r=SQLDB.exec(q);row=r.length&&r[r.length-1].values.length?r[r.length-1].values[0]:null}
+      else{const st=SQLDB.prepare('SELECT * FROM users WHERE username = ? AND password = ?');st.bind([u,p]);if(st.step())row=st.get();st.free()}
+    }catch(e){err=e.message}
+  }else{
+    const exact=USERS.find(x=>x[0]===u&&x[1]===p);
+    if(!vuln)row=exact||null;
+    else if(exact)row=exact;
+    else if(/'\s*or\s*'?(\w+)'?\s*=\s*'?\1/i.test(u+' '+p))row=USERS[0];
+    else{const m=u.match(/^(\w+)'\s*--/);row=m?USERS.find(x=>x[0]===m[1])||null:null}
+  }
+  const fb=$('sq-out');
+  if(err){fb.className='feedback bad';fb.textContent='SQL error: '+err+'. Errors like this tell an attacker the input reaches the database.';return}
+  if(!row){fb.className='feedback info';fb.textContent=vuln?'Login failed.':'Login failed. With a parameterised query the input is treated as data, never as SQL code, so the attack cannot work.';return}
+  const legit=USERS.some(x=>x[0]===u&&x[1]===p);
+  fb.className='feedback '+(legit?'good':'bad');
+  fb.textContent=legit?`Logged in as ${row[0]} (correct username and password).`:`HACKED: logged in as ${row[0]} without knowing the password! The input changed the meaning of the SQL query.`;
 }
 function initL2(){
   const show=k=>{$('ciafb').innerHTML=`<b>${CIA[k][0]}:</b> ${CIA[k][1]}`};
@@ -539,13 +610,27 @@ function initL2(){
     fb.textContent=(ok?'Correct. ':'Not quite. ')+(s.fake?'It is FAKE. ':'It is REAL. ')+s.why;
     $('sc'+i).querySelectorAll('button').forEach(x=>x.disabled=true);
   }));
+  const cz=()=>{const k=+$('cz-k').value;$('cz-kv').textContent=k;$('cz-out').textContent='Ciphertext: '+caesar($('cz-in').value,k)+'\nDecrypt (shift back '+k+'): '+caesar(caesar($('cz-in').value,k),26-k)};
+  if($('cz-in')){on('cz-in','input',cz);on('cz-k','input',cz);cz()}
+  const hs=async()=>{const t=$('hs-in').value, salted=$('hs-salt').checked;
+    if(!(window.crypto&&crypto.subtle)){$('hs-out').textContent='This browser blocks the hash tool here. Open the site over https (GitHub Pages) to try it.';return}
+    if(salted&&!SALT)SALT=[...crypto.getRandomValues(new Uint8Array(8))].map(x=>x.toString(16).padStart(2,'0')).join('');
+    const h=await sha256(salted?SALT+t:t);
+    $('hs-out').textContent=(salted?`salt = ${SALT}\nSHA-256(salt + "${t}") =\n`:`SHA-256("${t}") =\n`)+h+'\n('+h.length*4+' bits, always the same length)'};
+  if($('hs-in')){on('hs-in','input',hs);on('hs-salt','change',()=>{SALT='';hs()});hs()}
   on('pw','input',e=>{
     const r=crack(e.target.value),m=$('pwm');
-    if(!r){$('pwt').textContent='–';m.style.width='0';$('pwd').textContent='At 10 billion guesses a second.';return}
+    if(!r){$('pwt').textContent='–';m.style.width='0';return}
     $('pwt').textContent=human(r.secs);
     m.style.width=Math.min(100,r.log10/25*100)+'%'; m.style.background=r.secs<86400?'var(--bad)':r.secs<31557600*100?'var(--warn)':'var(--good)';
-    $('pwd').textContent=`${r.len} characters from a set of ${r.cs} → about 10^${Math.floor(r.log10)} possible passwords. Average time at 10 billion guesses a second.`;
+    $('pwd').textContent=`${r.len} characters from a set of ${r.cs} → about 10^${Math.floor(r.log10)} combinations. Average time at 10 billion guesses a second.`;
   });
+  if($('sq-go')){
+    const mode=m=>{SQMODE=m;$('sq-vuln').classList.toggle('on',m==='vuln');$('sq-safe').classList.toggle('on',m==='safe');sqRun()};
+    on('sq-vuln','click',()=>mode('vuln')); on('sq-safe','click',()=>mode('safe')); on('sq-go','click',sqRun);
+    document.querySelectorAll('[data-sq]').forEach(b=>b.addEventListener('click',()=>{const [u,p]=b.dataset.sq.split('|');$('sq-u').value=u;$('sq-p').value=p;sqRun()}));
+    loadSQL().then(()=>{if($('sq-q')&&$('sq-q').textContent)sqRun()});
+  }
 }
 
 /* ================= LESSON 3: DATABASES & SQL ================= */
@@ -641,7 +726,7 @@ ${KEYBOX(['Data = raw facts; information = processed, meaningful data.','A datab
 function L3P2(){return `
 ${SEC(H(6,'How apps use a database','The same pattern as the AI app')+
 `<p>When you order food on Zomato:</p>`+
-FLOW([['1. Front end','you tap “Place order”','c-teal'],['2. API request','order sent to the server','c-teal'],['3. Back end','checks address and payment','c-accent'],['4. SQL query','INSERT INTO orders …','c-warn'],['5. Database','saves the order safely','c-warn'],['6. Response','“Order placed” on your screen','c-good']],'wrap')+
+FLOW([['1. Front end','you tap “Place order”','c-teal'],['2. API request','order sent to the server','c-teal'],['3. Back end','checks address and payment','c-accent'],['4. SQL query','INSERT INTO orders …','c-warn'],['5. Database','saves the order safely','c-warn'],['6. Response','“Order placed” on your screen','c-good']],'fwrap')+
 NOTE('Users never touch the database directly. The back end talks to it using SQL.'))}
 ${SEC(H(7,'What is SQL?','The language of databases')+
 DEF('SQL (Structured Query Language)','The standard language used to create databases, add and change data, and ask questions (<b>queries</b>) of the data.')+
@@ -807,7 +892,7 @@ const LP={l1:[L1P1,L1P2,initL1],l2:[L2P1,L2P2,initL2],l3:[L3P1,L3P2,initL3],l4:[
 const lessonName=id=>(LESSONS.find(l=>l.id===id)||{}).name||id;
 const INTRO={
  l1:{hook:'Have you used ChatGPT, Google Lens or an Instagram filter this week? Is Google Maps AI?',goals:['Define AI and explain how it works: Input → Process → Output','Tell AI, Machine Learning, Deep Learning and Generative AI apart','Explain how an AI app is built: front end, API, back end, model, database, cloud']},
- l2:{hook:'Has anyone at home received a fake KYC, lottery or “digital arrest” message?',goals:['Define cybersecurity and its key terms, and the CIA triad','Recognise malware, phishing and common Indian frauds','Protect accounts with passphrases, 2FA and encryption, and report fraud']},
+ l2:{hook:'If you were building the Vivek University ERP login, how would you store 5,000 student passwords so that a database leak does not expose them?',goals:['Revise the key terms, CIA triad, malware and social engineering','Explain symmetric and asymmetric encryption, hashing, salting, digital signatures and TLS','Recognise OWASP Top 10 risks, demonstrate SQL injection and its fix, and know India’s cyber laws']},
  l3:{hook:'A chemist shop has 3,000 medicines. How does it know which ones expire next month?',goals:['Explain data, information, databases and DBMS','Describe tables, primary keys and foreign keys','Write SQL queries and understand how apps use databases']},
  l4:{hook:'Most AI tools are built with Python. Today you learn how a program thinks.',goals:['Explain programs, algorithms, flowcharts and Python','Use variables, data types, input and output','Use operators, if/elif/else, loops, lists and functions']}
 };
@@ -856,6 +941,11 @@ function initQuizPage(id,n){
 
 /* ================= LIVE CLASS ================= */
 const STAGE_NAME={intro:'Part 1: Basics',pre:'Quiz 1',lesson:'Part 2: Deeper',post:'Final quiz',closed:'Class ended'};
+const QO_MARK=' · Quiz only';
+const isQO=c=>!!(c&&typeof c.label==='string'&&c.label.endsWith(QO_MARK));
+const cleanLabel=c=>isQO(c)?c.label.slice(0,-QO_MARK.length):((c&&c.label)||'');
+const QO_NAME={intro:'Welcome (students join)',pre:'Quiz 1',lesson:'Teaching from slides',post:'Final quiz',closed:'Class ended'};
+const stageName=(c,st)=>(isQO(c)?QO_NAME:STAGE_NAME)[st];
 let CLS=null, ME=null, clsTimer=null, clsKey='';
 const meKey=id=>'class2-'+id;
 function loadMe(id){try{return JSON.parse(localStorage.getItem(meKey(id))||'null')}catch(e){return null}}
@@ -893,7 +983,7 @@ function classStep(){
 }
 function stepper(cur){
   const order=['intro','pre','lesson','post'], idx=order.indexOf(cur==='wait-pre'?'pre':cur==='done'?'post':cur);
-  return `<ol class="steps">${order.map((s,i)=>`<li class="${i<idx||cur==='done'?'done':i===idx?'cur':''}">${STAGE_NAME[s]}</li>`).join('')}</ol>`;
+  return `<ol class="steps">${order.map((s,i)=>`<li class="${i<idx||cur==='done'?'done':i===idx?'cur':''}">${isQO(CLS)?{intro:'Join',pre:'Quiz 1',lesson:'Lesson on screen',post:'Final quiz'}[s]:STAGE_NAME[s]}</li>`).join('')}</ol>`;
 }
 const practiceNext=label=>CLS.practice?`<div class="row"><button class="btn primary" id="pnext">${label}</button></div>`:'';
 const waitNote=t=>CLS.practice?'':`<p class="feedback info"><span class="dot"></span> ${t}</p>`;
@@ -903,7 +993,7 @@ function renderClass(force){
   const step=classStep(), key=step+'|'+CLS.stage;
   if(!force&&key===clsKey)return; clsKey=key;
   const L=CLS.lesson, I=INTRO[L], Q=QUIZ[L];
-  const head=`<section class="hero"><p class="eyebrow">${esc(CLS.label||'Today’s class')} · ${esc(lessonName(L))}</p>${step==='join'||step==='closed'?'':stepper(step)}</section>`;
+  const head=`<section class="hero"><p class="eyebrow">${esc(cleanLabel(CLS)||'Today’s class')} · ${esc(lessonName(L))}</p>${step==='join'||step==='closed'?'':stepper(step)}</section>`;
   let body='', init=null;
   if(step==='join'){
     let saved={};try{saved=JSON.parse(localStorage.getItem('student')||'{}')}catch(e){}
@@ -914,6 +1004,10 @@ function renderClass(force){
       <label class="fld">Course<select id="jc">${COURSES.map(c=>`<option ${saved.course===c?'selected':''}>${c}</option>`).join('')}</select></label>
       <label class="fld">Year<select id="jy">${[1,2,3,4,5].map(y=>`<option ${String(saved.year)===String(y)?'selected':''}>${y}</option>`).join('')}</select></label>
     </div><button class="btn primary" type="submit">Join the class</button></form>`;
+  }else if(step==='intro'&&isQO(CLS)){
+    body=`<h1>${esc(lessonName(L))}</h1><p class="lead">Welcome, ${esc(ME.name)}. You have joined the class.</p>
+    <section class="station" style="background:var(--ink);color:var(--bg);border:0"><p class="num" style="color:#F4B183">Look at the screen</p><h2 style="color:inherit">Your teacher is teaching from the slides. Keep this page open: Quiz 1 will open here automatically.</h2></section>
+    ${waitNote('Waiting for your teacher to open Quiz 1…')}`;
   }else if(step==='intro'){
     body=`<h1>${esc(lessonName(L))}</h1>
     <section class="station" style="background:var(--ink);color:var(--bg);border:0"><p class="num" style="color:#F4B183">Think about this</p><h2 style="color:inherit">${esc(I.hook)}</h2></section>
@@ -925,7 +1019,12 @@ function renderClass(force){
     body=`<h1>Quiz 1: the basics</h1><p class="lead">10 questions on Part 1. Answers appear after you submit.</p>${quizForm(Q.q1,'pre','Submit Quiz 1')}`;
   }else if(step==='wait-pre'){
     body=`<div class="score"><p class="eyebrow" style="color:#F4B183">${esc(ME.name)} · Quiz 1</p><p class="big">${ME.preScore} <span style="font-size:.5em">/ ${Q.q1.length}</span></p><p>${ME.preScore>=8?'Excellent start!':ME.preScore>=5?'Good. Check the answers below.':'Read the answers below; Part 2 will help.'}</p></div>
-    ${waitNote('Waiting for your teacher to start Part 2…')}${practiceNext('Start Part 2')}
+    ${waitNote(isQO(CLS)?'Waiting for your teacher to continue the lesson on the screen…':'Waiting for your teacher to start Part 2…')}${practiceNext('Start Part 2')}
+    <section class="station"><h2>Quiz 1 answers</h2>${review(Q.q1,ME.preAns)}</section>`;
+  }else if(step==='lesson'&&isQO(CLS)){
+    body=`<div class="score"><p class="eyebrow" style="color:#F4B183">${esc(ME.name)} · Quiz 1</p><p class="big">${ME.preScore} <span style="font-size:.5em">/ ${Q.q1.length}</span></p></div>
+    <section class="station" style="background:var(--ink);color:var(--bg);border:0"><p class="num" style="color:#F4B183">Look at the screen</p><h2 style="color:inherit">The lesson continues on the slides. Keep this page open: the final quiz will open here automatically.</h2></section>
+    ${waitNote('Waiting for your teacher to open the final quiz…')}
     <section class="station"><h2>Quiz 1 answers</h2>${review(Q.q1,ME.preAns)}</section>`;
   }else if(step==='lesson'){
     body=`<div class="partband"><span>Part 2</span> A deeper look</div>${LP[L][1]()}${waitNote('Your teacher will open the final quiz at the end of Part 2.')}${practiceNext('Take the final quiz')}`;
@@ -997,26 +1096,28 @@ function renderTeacher(){
     el.innerHTML=`<form class="station" id="tstart"><h2>Start a class</h2><div class="two">
       <label class="fld">Lesson<select id="tl">${LESSONS.map(l=>`<option value="${l.id}">${esc(l.name)}</option>`).join('')}</select></label>
       <label class="fld">Class name<input id="tlab" maxlength="80" placeholder="BCA 2nd year · 18 Nov"></label></div>
+      <label class="opt" style="max-width:none"><input type="checkbox" id="tqo" checked> <span><b>Quiz only</b>: I teach from the slides on the class screen. Students’ phones show only Quiz 1 and the final quiz, and “look at the screen” in between.</span></label>
       <p class="small muted">Suggested timing for 40 minutes: Part 1 (12 min) → Quiz 1 (5 min) → Part 2 (15 min) → Final quiz (5 min).</p>
       <button class="btn primary" type="submit">Start class</button></form>
       <div class="row"><a class="btn" href="#reports">Open reports</a><button class="btn" id="tsignout">Sign out</button></div>`;
     on('tstart','submit',async e=>{e.preventDefault();
       await sb.from('class_sessions').update({active:false,stage:'closed',ended_at:new Date().toISOString()}).eq('active',true);
-      const {error}=await sb.from('class_sessions').insert({lesson:$('tl').value,label:$('tlab').value.trim(),stage:'intro',active:true}).select().single();
+      const base=$('tlab').value.trim(), qo=$('tqo').checked;
+      const {error}=await sb.from('class_sessions').insert({lesson:$('tl').value,label:qo?base.slice(0,80-QO_MARK.length)+QO_MARK:base.slice(0,80),stage:'intro',active:true}).select().single();
       if(error){toast('Could not start: '+error.message);return} toast('Class started'); loadTeacher()});
     on('tsignout','click',async()=>{await sb.auth.signOut();initTeacher()});
     return;
   }
   const order=['intro','pre','lesson','post'];
-  el.innerHTML=`<section class="station"><div class="row" style="justify-content:space-between"><div><p class="num">Live now</p><h2>${esc(lessonName(TCH.lesson))}</h2><p class="muted small">${esc(TCH.label||'')} · started ${esc(new Date(TCH.created_at).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}))}</p></div><span class="tag good">Now: ${STAGE_NAME[TCH.stage]}</span></div>
-    <p class="small muted">Tap the step the class should see now:</p>
-    <div class="row">${order.map((s,i)=>`<button class="btn ${TCH.stage===s?'on':''}" data-stage="${s}">${i+1}. ${STAGE_NAME[s]}</button>`).join('')}</div>
+  el.innerHTML=`<section class="station"><div class="row" style="justify-content:space-between"><div><p class="num">Live now</p><h2>${esc(lessonName(TCH.lesson))}</h2><p class="muted small">${esc(cleanLabel(TCH))}${isQO(TCH)?' · <b>Quiz-only mode</b>':''} · started ${esc(new Date(TCH.created_at).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}))}</p></div><span class="tag good">Now: ${stageName(TCH,TCH.stage)}</span></div>
+    <p class="small muted">${isQO(TCH)?'Teach from the slides. Tap Quiz 1 when you finish Part 1, Teaching from slides when everyone has submitted, and Final quiz at the end.':'Tap the step the class should see now:'}</p>
+    <div class="row">${order.map((s,i)=>`<button class="btn ${TCH.stage===s?'on':''}" data-stage="${s}">${i+1}. ${stageName(TCH,s)}</button>`).join('')}</div>
     <div class="row">${confirmEnd?`<span class="small">End this class? Students can no longer submit.</span><button class="btn primary" id="tendy">Yes, end class</button><button class="btn" id="tendn">Keep it running</button>`:`<button class="btn" id="tend">End class</button>`}<a class="btn" href="#${TCH.lesson}" target="_blank" rel="noopener">Open lesson to teach from</a><a class="btn" href="#reports">Reports</a></div></section>
   <div class="two"><section class="station"><p class="num">Students open</p><p style="font-family:var(--mono);word-break:break-all;font-size:15px;user-select:all">${esc(siteLink())}</p><div id="qr" style="align-self:flex-start;background:#fff;padding:10px;border-radius:12px"></div></section>
   <section class="station" id="live"><p class="muted">Loading live results…</p></section></div>`;
   document.querySelectorAll('[data-stage]').forEach(b=>b.addEventListener('click',async()=>{
     const {data,error}=await sb.from('class_sessions').update({stage:b.dataset.stage}).eq('id',TCH.id).select().single();
-    if(error){toast(error.message);return} TCH=data; renderTeacher(); toast('Students now see: '+STAGE_NAME[TCH.stage])}));
+    if(error){toast(error.message);return} TCH=data; renderTeacher(); toast('Students now see: '+stageName(TCH,TCH.stage))}));
   on('tend','click',()=>{confirmEnd=true;renderTeacher()});
   on('tendn','click',()=>{confirmEnd=false;renderTeacher()});
   on('tendy','click',async()=>{await sb.from('class_sessions').update({active:false,stage:'closed',ended_at:new Date().toISOString()}).eq('id',TCH.id);clearInterval(tchTimer);toast('Class ended');location.hash='#reports'});
@@ -1085,6 +1186,52 @@ function renderReports(){
   });
 }
 
+/* ================= PRINT BOOK (teacher's PDF) ================= */
+const BOARD=t=>`<p class="note"><b>On the board:</b> ${t}</p>`;
+const qa=rows=>TABLE(['Item','Answer'],rows);
+PRINTACT={
+ 'Where does each app belong?':()=>BOARD('Draw four circles inside each other: AI ⊃ ML ⊃ DL ⊃ GenAI. Read each app aloud; students say which circle.')+qa(APPS.map(([n,k])=>[n,'<b>'+RING[k][0]+'</b>: '+RING[k][1]])),
+ 'Be the model: will this student pass?':()=>BOARD('Draw the table. Ask: a new student studied 5 hours with 85% attendance. What will the model predict?')+TABLE(['Hours studied','Attendance','Result'],TRAIN.map(t=>[t.h,t.a+'%',t.r]))+`<p><b>Answer:</b> Pass. The most similar student studied 4 hours with 80% attendance and passed. Then try 1 hour, 55%: Fail (closest to the 1 h / 50% student).</p>`,
+ 'Watch the model pick the next word':()=>BOARD('Write “The capital of India is ____”. Let the class complete it, then show the scores.')+TABLE(['Next word','Score (example)'],[['Delhi','92%'],['Mumbai','4%'],['Kolkata','2%'],['big','1%'],['in','1%']])+`<p>The model picks the highest score, then repeats for the next word. It predicts; it does not look facts up. That is why hallucinations happen.</p>`,
+ 'Build a strong prompt':()=>BOARD('Write the weak prompt, then build the strong one part by part with the class.')+TABLE(['','Prompt'],[['Weak','Tell me about DBMS.'],['Strong','<b>You are a computer science teacher.</b> Explain normalisation in DBMS to a 2nd-year BCA student who knows basic tables. Answer in 5 bullet points with one example.']]),
+ 'Tap each corner of the triangle':()=>BOARD('Draw a triangle with C, I and A at the corners. Ask for a college example of each.')+qa(Object.values(CIA).map(([t,d])=>[t,d])),
+ 'Spot the scam: real or fake?':()=>BOARD('Read each message aloud. Hands up for real, then for fake. Ask for the clue.')+TABLE(['Message','Answer and clue'],SCAMS.map(s=>[esc(s.m),`<b>${s.fake?'FAKE':'REAL'}.</b> ${s.why}`])),
+ 'Caesar cipher: the oldest cipher':()=>BOARD('Write the alphabet and shift it by 3. Encrypt ATTACK AT DAWN together, then ask: how many keys must an attacker try?')+TABLE(['Plaintext','Key','Ciphertext'],[['ATTACK AT DAWN','3',caesar('ATTACK AT DAWN',3)],['VIVEK','5',caesar('VIVEK',5)],['HELLO','13',caesar('HELLO',13)]])+'<p><b>Answer:</b> only 25 keys, so brute force breaks it instantly. AES-256 has 2²⁵⁶ keys.</p>',
+ 'Live SHA-256: see the avalanche effect':()=>BOARD('Write the two inputs. Point out that one changed character changes the whole hash, and both are 64 hex characters (256 bits).')+TABLE(['Input','SHA-256 (first 24 of 64 hex characters)'],[['riya@123','<code>1fe5c52bdf4951bfa0948c31…</code>'],['riya@124 (one character changed)','<code>b72ad1e04692eb1b901384fa…</code>'],['9f2a + riya@123 (salt added)','<code>4a5e03272c4bf503aaea426e…</code>']])+'<p>Ask: why can an attacker not reverse the hash? Why does the salt stop rainbow tables?</p>',
+ 'How long to brute-force a password?':()=>BOARD('Write these passwords and ask the class to rank them from weakest to strongest.')+TABLE(['Password','Average time to crack (10 billion guesses a second)'],['12345678','rahul123','P@ss1','India@2026','Mango-Bus-Pencil-River-47'].map(p=>[`<code>${p}</code>`,human(crack(p).secs)])),
+ 'SQL injection lab: log in without the password':()=>BOARD('Write the vulnerable query. Substitute each input with the class and read the final SQL aloud.')+TABLE(['Username','Password','Query the server runs','Result'],[['riya','riya@123',"<code>... WHERE username = 'riya' AND password = 'riya@123'</code>",'Logged in (legit)'],['admin',"<code>' OR '1'='1</code>","<code>... WHERE username = 'admin' AND password = '' OR '1'='1'</code>",'<b>HACKED</b>: the condition is always true'],["<code>admin' --</code>",'anything',"<code>... WHERE username = 'admin' --' AND password = '...'</code>",'<b>HACKED</b>: <code>--</code> comments out the password check'],['any attack','any','Parameterised: <code>WHERE username = ? AND password = ?</code>','Fails safely: input is data, not code']]),
+ 'Data or information?':()=>BOARD('Read each item; students say data or information.')+TABLE(['Item','Answer'],DI.map(d=>[esc(d[0]),`<b>${d[1]==='d'?'Data':'Information'}.</b> ${d[2]}`])),
+ 'Build a query without typing':()=>BOARD('Build each query on the board clause by clause, then ask for the result.')+[["SELECT name, qty FROM medicines WHERE qty < 20 ORDER BY price DESC;",{columns:['name','qty'],values:[['Amoxicillin 500',15],['Pantoprazole 40',8]]}],["SELECT name, price FROM medicines WHERE price > 5 ORDER BY price;",{columns:['name','price'],values:MEDS.filter(m=>m[5]>5).sort((a,b)=>a[5]-b[5]).map(m=>[m[1],m[5]])}]].map(([q,r])=>`<div class="code"><span class="l">${esc(q)}</span></div>${tableHtml(r)}`).join(''),
+ 'SQL playground: run real queries':()=>BOARD('Write each query. Ask students to predict the result before you reveal it.')+PRESETS.map(([n,q])=>`<p class="label">${esc(n)}</p><div class="code">${q.split('\n').map(l=>`<span class="l">${esc(l)}</span>`).join('')}</div>${tableHtml(presetResult(q))}`).join(''),
+ 'Type detective':()=>BOARD('Write each value; students call out its type.')+TABLE(['Value','type()','Why'],[['19','int','whole number'],['"19"','str','in quotes'],['8.4','float','decimal point'],['True','bool','True / False'],['"True"','str','in quotes'],['true','error','Python is case-sensitive: write True']]),
+ 'The input trap: "5" + "3" or 5 + 3?':()=>BOARD('Ask the class to predict both outputs.')+TABLE(['Code','Output','Why'],[['print("5" + "3")','53','text + text joins'],['print(int("5") + int("3"))','8','int() turns text into numbers']]),
+ 'Watch if / elif / else run, step by step':()=>BOARD('Write the program. Trace each value of marks with the class, line by line.')+CODE(GRADE)+TABLE(['marks','Conditions checked','Output'],[['82','≥ 75 True','Grade A'],['60','≥ 75 False, ≥ 60 True','Grade B'],['45','≥ 75 False, ≥ 60 False, ≥ 33 True','Grade C - Pass'],['20','all False → else','Fail']]),
+ 'Multiplication table with a for loop':()=>BOARD('Write the loop. Ask: what prints when n is 7? What changes with range(1, 21)?')+`<p class="out">${Array.from({length:10},(_,i)=>`7 x ${i+1} = ${7*(i+1)}`).join('\n')}</p><p>range(1, 21) prints up to 7 x 20: the end number is not included.</p>`,
+ 'Real life: chemist bill with discount':()=>BOARD('Give the task first. Pairs write it in notebooks; one pair writes it on the board.')+CODE(BILL)+TABLE(['Price','Strips','Bill','Above 500?','Amount to pay'],[['120','5','600','Yes','540.0'],['50','4','200','No','200.0'],['250','3','750','Yes','675.0']])
+};
+const PLAN={intro:'12 min',pre:'5 min',lesson:'15 min',post:'5 min'};
+function printQuiz(qs){return `<ol class="pq">${qs.map(q=>`<li><p><b>${esc(q.q)}</b></p><ol type="a">${q.o.map((o,j)=>`<li${j===q.a?' class="ok"':''}>${esc(o)}${j===q.a?' ✓':''}</li>`).join('')}</ol><p class="small muted">${esc(q.why)}</p></li>`).join('')}</ol>`}
+function printQuizStudent(qs){return `<ol class="pq">${qs.map(q=>`<li><p><b>${esc(q.q)}</b></p><ol type="a">${q.o.map(o=>`<li>${esc(o)}</li>`).join('')}</ol></li>`).join('')}</ol>`}
+function vPrint(only){
+  PRINT=true;
+  const list=only?LESSONS.filter(l=>l.id===only):LESSONS;
+  let h=`<section class="pcover"><p class="eyebrow">Teacher’s book</p><h1>Learn Computing Today</h1><p class="lead">${list.length>1?'Four lessons':'One lesson'} of 40 minutes: theory, diagrams, board activities, and two 10-question quizzes with answer keys.</p>${CFG.TEACHER?`<p><b>${esc(CFG.TEACHER)}</b></p>`:''}
+  ${TABLE(['Lesson','Part 1: Basics','Part 2: Deeper'],list.map(l=>[`<b>${l.name}</b>`,INTRO[l.id].goals.slice(0,2).map(esc).join('<br>'),esc(INTRO[l.id].goals[2])]))}</section>`;
+  list.forEach((l,i)=>{const Q=QUIZ[l.id], I=INTRO[l.id];
+    h+=`<div class="lessonstart"><section class="hero"><p class="eyebrow">Lesson ${LESSONS.indexOf(l)+1}</p><h1>${l.name}</h1></section>
+    ${TABLE(['Step','Time','What you do'],[['1. Part 1: Basics',PLAN.intro,'Start with the question below, write the three goals, teach the Part 1 sections with the board activities'],['2. Quiz 1',PLAN.pre,'10 questions on the basics (students’ copy at the end of the lesson)'],['3. Part 2: Deeper',PLAN.lesson,'Teach the remaining sections with the board activities'],['4. Final quiz',PLAN.post,'10 questions on the whole lesson'],['Close','3 min','Ask each student one thing they learned']])}
+    <section class="station"><p class="num">Opening question</p><h2>${esc(I.hook)}</h2><p class="label">Today’s goals</p>${KEY(I.goals.map(esc))}</section></div>
+    <div class="partband"><span>Part 1</span> The basics</div>${LP[l.id][0]()}
+    <div class="pbreak"><div class="partband"><span>Quiz 1</span> Answer key</div>${printQuiz(Q.q1)}</div>
+    <div class="pbreak"><div class="partband"><span>Part 2</span> A deeper look</div></div>${LP[l.id][1]()}
+    <div class="pbreak"><div class="partband"><span>Final quiz</span> Answer key</div>${printQuiz(Q.q2)}</div>
+    <div class="pbreak"><div class="partband"><span>Student copy</span> ${l.name}: Quiz 1</div><p>Name: ______________________ Roll no: ________ Course/Year: ____________</p>${printQuizStudent(Q.q1)}</div>
+    <div class="pbreak"><div class="partband"><span>Student copy</span> ${l.name}: Final quiz</div><p>Name: ______________________ Roll no: ________ Course/Year: ____________</p>${printQuizStudent(Q.q2)}</div>`;
+  });
+  PRINT=false;
+  return h;
+}
+
 /* ================= ROUTER ================= */
 async function route(){
   const h=(location.hash||'').slice(1);
@@ -1099,6 +1246,9 @@ async function route(){
   if(h===''&&sb){const a=await fetchActive(); if(a){location.replace('#class');return}}
   let key=h||'home';
   if(key==='results')key='reports';
+  const pm=key.match(/^print(?:-(l[1-4]))?$/);
+  if(pm){document.body.classList.add('printmode');main.innerHTML=vPrint(pm[1]);document.title='Teacher’s book · Learn Computing Today';return}
+  document.body.classList.remove('printmode');
   const qm=key.match(/^quiz([12])-(l[1-4])$/);
   if(qm){main.innerHTML=vQuizPage(qm[2],+qm[1]);initQuizPage(qm[2],+qm[1]);navCur(qm[2]);document.title=(qm[1]==='1'?'Quiz 1':'Final quiz')+' · '+lessonName(qm[2]);window.scrollTo(0,0);return}
   if(LP[key]){main.innerHTML=vLesson(key);LP[key][2]()}
